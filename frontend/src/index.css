@@ -1,0 +1,44 @@
+/* 全局基础样式。组件样式一律用 Mantine(theme.js),这里只放少量布局/装饰性规则。 */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Escrow 卡片 hover 效果(见 docs/ui-design.md 三.3:点击整张卡片跳转) */
+.escrow-card {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.escrow-card:hover {
+  border-color: var(--mantine-color-blue-4);
+  box-shadow: var(--mantine-shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* 待处理操作的小红点(与文字提示一起使用,不单独承载信息) */
+.pending-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--mantine-color-red-6);
+  box-shadow: 0 0 0 3px var(--mantine-color-red-light);
+}
+
+/* Header 网络徽章里的点(纯展示,见 docs/ui-design.md 二):绿=已连接,灰=未连接 */
+.network-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--mantine-color-green-6);
+}
+
+.network-dot-offline {
+  background-color: var(--mantine-color-gray-5);
+}

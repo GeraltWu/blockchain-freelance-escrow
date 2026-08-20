@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+
+# 本地配置与数据库
+.env
+instance/
+
+# 虚拟环境(本项目用 conda 环境 escrow,不在仓库内)
+venv/
+.venv/
