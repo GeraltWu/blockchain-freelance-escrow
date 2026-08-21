@@ -15,6 +15,12 @@ def is_valid_address(value):
     return isinstance(value, str) and bool(ADDRESS_RE.match(value))
 
 
+def normalize_address(value):
+    """地址统一小写存储/比较(见 docs/data-model.md 三:
+    checksum 只是显示格式,存储与查询一律小写,避免大小写不一致导致查不到)"""
+    return value.lower()
+
+
 def is_valid_wei(value):
     return isinstance(value, str) and bool(WEI_RE.match(value))
 

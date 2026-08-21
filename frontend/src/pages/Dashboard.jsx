@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Center,
+  Group,
   SegmentedControl,
   SimpleGrid,
   Skeleton,
@@ -22,20 +23,17 @@ import {
   IconPlus,
   IconRefresh,
 } from '@tabler/icons-react'
+import { ConnectPrompt } from '../components/ConnectPrompt.jsx'
 import { EscrowCard } from '../components/EscrowCard.jsx'
-import { Mono } from '../components/Mono.jsx'
 import { StatCard } from '../components/StatCard.jsx'
 import { useEscrows } from '../hooks/useEscrows.js'
 import { useWallet } from '../hooks/useWallet.js'
-import { formatEth, getReleasedWei, shortenAddress } from '../utils/format.js'
+import { formatEth, getReleasedWei } from '../utils/format.js'
 
 // 首页 Dashboard(见 docs/ui-design.md「三、Page 1:Dashboard」):
 // 统计卡片 → 角色切换 → 项目列表 → 空状态
-// 数据只来自后端 GET /api/escrows(+ 详情拿 milestones),后端不可用时显示错误提示
-
-// TODO: 接入真实 MetaMask 后,替换为当前连接的钱包地址(见 docs/architecture.md web3/wallet.js)
-// 后端种子数据围绕这个地址,保证钱包接入前页面有真实的 API 数据可看
-const DEMO_ADDRESS = '0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
+// 数据只来自后端 GET /api/escrows(+ 详情拿 milestones),按当前钱包地址过滤;
+// 未连接钱包时提示连接
 
 function EmptyState() {
   return (
@@ -75,12 +73,30 @@ function DashboardSkeleton() {
 }
 
 export function Dashboard() {
+  const { address } = useWallet()
+
+  // 未连接钱包:无从按地址过滤,提示连接
+  if (!address) {
+    return (
+      <Stack gap="lg">
+        <div>
+          <Title order={2}>Dashboard</Title>
+          <Text size="sm" c="dimmed" mt={4}>
+            An overview of your escrow projects — see at a glance which ones need your action.
+          </Text>
+        </div>
+        <ConnectPrompt description="Connect MetaMask (Sepolia) to see your escrows — as client, freelancer, or both." />
+      </Stack>
+    )
+  }
+
+  // key=address:切换账户时数据区整体重挂载,状态清零,避免旧账户数据残留
+  return <DashboardContent key={address} address={address} />
+}
+
+function DashboardContent({ address }) {
   // 同一个钱包既是某些项目的 Client,也是另一些项目的 Freelancer,两种视角分开看
   const [role, setRole] = useState('client') // client | freelancer
-
-  // 已连接:用真实钱包地址;未连接:退回演示地址(后端种子数据围绕它)
-  const { address: walletAddress } = useWallet()
-  const address = walletAddress ?? DEMO_ADDRESS
 
   const { loading, error, escrows, reload } = useEscrows({ address })
   const clientEscrows = escrows.filter((e) => e.role === 'client')
@@ -91,36 +107,51 @@ export function Dashboard() {
     return <DashboardSkeleton />
   }
 
-  // 统计指标(随角色切换重新计算)
+  // 统计指标:随角色切换重新计算,指标名自带角色语义(方案 A)
   const active = myEscrows.filter((e) => e.status === 'CREATED' || e.status === 'FUNDED')
   const lockedWei = active.reduce(
     (sum, e) => sum + BigInt(e.totalWei) - BigInt(getReleasedWei(e.milestones)),
     0n,
   )
+  // pendingLabel 由 mapper 按角色推导:client=有 SUBMITTED 待确认,freelancer=有 PENDING 待提交
   const pendingCount = myEscrows.filter((e) => e.pendingLabel).length
   const completedCount = myEscrows.filter((e) => e.status === 'COMPLETED').length
 
-  const stats = [
+  const commonStats = [
     { icon: IconBriefcase, label: 'Active Projects', value: String(active.length) },
-    { icon: IconLock, label: 'Total Locked Funds', value: formatEth(lockedWei.toString()), unit: 'ETH' },
-    { icon: IconAlertCircle, label: 'Pending Actions', value: String(pendingCount) },
     { icon: IconCircleCheck, label: 'Completed Projects', value: String(completedCount) },
   ]
+  const roleStats =
+    role === 'client'
+      ? [
+          { icon: IconLock, label: 'Total Locked Funds', value: formatEth(lockedWei.toString()), unit: 'ETH' },
+          { icon: IconAlertCircle, label: 'Awaiting Your Approval', value: String(pendingCount) },
+        ]
+      : [
+          { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
+          { icon: IconAlertCircle, label: 'Ready to Submit', value: String(pendingCount) },
+        ]
+  const stats = [commonStats[0], ...roleStats, commonStats[1]]
 
   return (
     <Stack gap="lg">
-      <div>
-        <Title order={2}>Dashboard</Title>
-        <Text size="sm" c="dimmed" mt={4}>
-          An overview of your escrow projects — see at a glance which ones need your action.
-        </Text>
-        {!walletAddress && (
-          <Text size="xs" c="dimmed" mt={2}>
-            Demo mode: showing data for <Mono inherit>{shortenAddress(DEMO_ADDRESS)}</Mono> —
-            connect your wallet to see your own escrows.
+      {/* 角色切换紧跟标题、位于统计卡之上:先选身份 → 再看数据(方案 A) */}
+      <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
+        <div>
+          <Title order={2}>Dashboard</Title>
+          <Text size="sm" c="dimmed" mt={4}>
+            An overview of your escrow projects — see at a glance which ones need your action.
           </Text>
-        )}
-      </div>
+        </div>
+        <SegmentedControl
+          value={role}
+          onChange={setRole}
+          data={[
+            { value: 'client', label: `As Client · ${clientEscrows.length}` },
+            { value: 'freelancer', label: `As Freelancer · ${freelancerEscrows.length}` },
+          ]}
+        />
+      </Group>
 
       {error && (
         <Alert
@@ -153,15 +184,6 @@ export function Dashboard() {
               <StatCard key={s.label} {...s} />
             ))}
           </SimpleGrid>
-
-          <SegmentedControl
-            value={role}
-            onChange={setRole}
-            data={[
-              { value: 'client', label: `As Client · ${clientEscrows.length}` },
-              { value: 'freelancer', label: `As Freelancer · ${freelancerEscrows.length}` },
-            ]}
-          />
 
           {myEscrows.length === 0 ? (
             <EmptyState />

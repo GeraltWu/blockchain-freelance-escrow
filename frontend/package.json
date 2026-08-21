@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:abi": "node -e \"const fs=require('fs');const a=require('../contracts/artifacts/FreelanceEscrow.json');fs.writeFileSync('src/web3/abi/FreelanceEscrow.json',JSON.stringify(a.abi,null,2));console.log('ABI synced from contracts/artifacts')\""
   },
   "dependencies": {
     "@mantine/core": "^9.5.1",

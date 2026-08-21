@@ -20,12 +20,10 @@ def create_app(config_class=Config):
     from .routes.escrows import bp as escrows_bp
     app.register_blueprint(escrows_bp, url_prefix='/api')
 
+    from .routes.transactions import bp as transactions_bp
+    app.register_blueprint(transactions_bp, url_prefix='/api')
+
     with app.app_context():
         db.create_all()
-        # 开发便利:库为空时自动灌入示例数据(接链上数据后移除)
-        from .models import Escrow
-        if Escrow.query.first() is None:
-            from .seed import seed_database
-            seed_database()
 
     return app

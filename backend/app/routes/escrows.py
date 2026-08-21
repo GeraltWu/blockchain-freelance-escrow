@@ -4,7 +4,7 @@ from ..extensions import db
 from ..models import Escrow, Milestone
 from ..utils.errors import api_error
 from ..utils.serializers import to_iso
-from ..utils.validators import is_valid_address, is_valid_tx_hash, is_valid_wei, parse_iso
+from ..utils.validators import is_valid_address, is_valid_tx_hash, is_valid_wei, normalize_address, parse_iso
 
 bp = Blueprint('escrows', __name__)
 
@@ -65,14 +65,15 @@ def list_escrows():
 
     query = Escrow.query
     if address:
+        normalized = normalize_address(address)  # 库里统一小写,查询同样小写化
         if role == 'client':
-            query = query.filter(Escrow.client_address == address)
+            query = query.filter(Escrow.client_address == normalized)
         elif role == 'freelancer':
-            query = query.filter(Escrow.freelancer_address == address)
+            query = query.filter(Escrow.freelancer_address == normalized)
         else:
             query = query.filter(db.or_(
-                Escrow.client_address == address,
-                Escrow.freelancer_address == address,
+                Escrow.client_address == normalized,
+                Escrow.freelancer_address == normalized,
             ))
     if status:
         query = query.filter(Escrow.status == status)
@@ -176,8 +177,8 @@ def create_escrow():
 
     escrow = Escrow(
         escrow_id=escrow_id,
-        client_address=data['client_address'],
-        freelancer_address=data['freelancer_address'],
+        client_address=normalize_address(data['client_address']),
+        freelancer_address=normalize_address(data['freelancer_address']),
         title=title,
         description=str(data.get('description') or '').strip() or None,
         total_amount_wei=data['total_amount_wei'],

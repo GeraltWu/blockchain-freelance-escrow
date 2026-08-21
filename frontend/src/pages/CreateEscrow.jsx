@@ -24,10 +24,11 @@ import { IconCircleCheck, IconPlus, IconTrash, IconWallet } from '@tabler/icons-
 import dayjs from 'dayjs'
 import { parseEther } from 'ethers'
 import { createEscrowMetadata } from '../api/escrows.js'
+import { reportTransaction } from '../api/transactions.js'
 import { AddressText } from '../components/AddressText.jsx'
 import { Mono } from '../components/Mono.jsx'
 import { useWallet } from '../hooks/useWallet.js'
-import { formatEth } from '../utils/format.js'
+import { formatEth, shortenAddress } from '../utils/format.js'
 import { isEthAddress } from '../utils/validators.js'
 import { createEscrowOnChain } from '../web3/contract.js'
 
@@ -140,18 +141,30 @@ export function CreateEscrow() {
     })
 
     try {
-      const { escrowId, txHash } = await createEscrowOnChain({
+      const { escrowId, txHash, blockNumber } = await createEscrowOnChain({
         signer,
         freelancer: freelancerAddress,
         deadline: dayjs(deadline).unix(), // 合约要 unix 秒(见 docs/api-spec.md 4.1)
         descriptions: milestones.map((m) => m.description.trim()),
         amounts: milestones.map((m) => parseEther(String(m.amountEth))),
+        // 三段式通知(ui-design.md 七):等待签名 → 已提交等上链 → 创建成功
+        onSubmitted: (hash) => {
+          notifications.update({
+            id: 'create-flow',
+            title: 'Transaction submitted',
+            message: `Waiting for on-chain confirmation… ${shortenAddress(hash)}`,
+            color: 'blue',
+            loading: true,
+            autoClose: false,
+          })
+        },
       })
 
+      // tx.wait() 已确认,把链上项目结构同步到后端(SQLite 元数据)
       notifications.update({
         id: 'create-flow',
-        title: 'Transaction submitted',
-        message: 'Waiting for on-chain confirmation…',
+        title: 'Transaction confirmed',
+        message: 'Saving project metadata…',
         color: 'blue',
         loading: true,
         autoClose: false,
@@ -172,6 +185,24 @@ export function CreateEscrow() {
           amount_wei: parseEther(String(m.amountEth)).toString(),
         })),
       })
+
+      // 顺手把 CREATE_ESCROW 交易也写进历史(api-spec 3.2);失败不阻塞创建成功
+      try {
+        await reportTransaction({
+          tx_hash: txHash,
+          from_address: address,
+          escrow_id: escrowId,
+          action: 'CREATE_ESCROW',
+          status: 'CONFIRMED',
+          block_number: blockNumber,
+        })
+      } catch {
+        notifications.show({
+          title: 'Transaction record sync failed',
+          message: 'The escrow was created on-chain, but the history record could not be saved.',
+          color: 'yellow',
+        })
+      }
 
       notifications.update({
         id: 'create-flow',

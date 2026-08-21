@@ -1,0 +1,790 @@
+{
+	"compiler": {
+		"version": "0.8.34+commit.80d5c536"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "raisedBy",
+						"type": "address"
+					}
+				],
+				"name": "DisputeRaised",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "releasedToFreelancer",
+						"type": "bool"
+					}
+				],
+				"name": "DisputeResolved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "client",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "deadline",
+						"type": "uint256"
+					}
+				],
+				"name": "EscrowCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "EscrowFunded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amountReleased",
+						"type": "uint256"
+					}
+				],
+				"name": "MilestoneApproved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "MilestoneSubmitted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "Refunded",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "approveMilestone",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "arbitrator",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "clientEscrows",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "deadline",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string[]",
+						"name": "descriptions",
+						"type": "string[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "amounts",
+						"type": "uint256[]"
+					}
+				],
+				"name": "createEscrow",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "escrowMilestones",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum FreelanceEscrow.MilestoneStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "submittedAt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "approvedAt",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "escrows",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "client",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "fundedAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "deadline",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum FreelanceEscrow.EscrowStatus",
+						"name": "status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneCount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "createdAt",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "freelancerEscrows",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					}
+				],
+				"name": "fundEscrow",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "client",
+						"type": "address"
+					}
+				],
+				"name": "getClientEscrows",
+				"outputs": [
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					}
+				],
+				"name": "getEscrow",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "id",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "client",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "freelancer",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "totalAmount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "fundedAmount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "deadline",
+								"type": "uint256"
+							},
+							{
+								"internalType": "enum FreelanceEscrow.EscrowStatus",
+								"name": "status",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "milestoneCount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "createdAt",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct FreelanceEscrow.Escrow",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "freelancer",
+						"type": "address"
+					}
+				],
+				"name": "getFreelancerEscrows",
+				"outputs": [
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "getMilestone",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "index",
+								"type": "uint256"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "enum FreelanceEscrow.MilestoneStatus",
+								"name": "status",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "submittedAt",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "approvedAt",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct FreelanceEscrow.Milestone",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					}
+				],
+				"name": "getMilestones",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "index",
+								"type": "uint256"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "enum FreelanceEscrow.MilestoneStatus",
+								"name": "status",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "submittedAt",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "approvedAt",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct FreelanceEscrow.Milestone[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "nextEscrowId",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "raiseDispute",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "refund",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "releaseToFreelancer",
+						"type": "bool"
+					}
+				],
+				"name": "resolveDispute",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "escrowId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "milestoneIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "submitMilestone",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"createEscrow(address,uint256,string[],uint256[])": {
+					"params": {
+						"amounts": "每个 milestone 的金额(wei)",
+						"descriptions": "每个 milestone 的描述,顺序与 amounts 对应"
+					}
+				}
+			},
+			"title": "FreelanceEscrow — 自由职业里程碑托管支付",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"approveMilestone(uint256,uint256)": {
+					"notice": "Client 批准并放款:资金释放给 Freelancer(approve 与 release 同一笔交易)"
+				},
+				"createEscrow(address,uint256,string[],uint256[])": {
+					"notice": "Client 创建项目(只登记结构,不转账)"
+				},
+				"fundEscrow(uint256)": {
+					"notice": "Client 一次性全额存入资金,项目进入 FUNDED"
+				},
+				"raiseDispute(uint256,uint256)": {
+					"notice": "Client 或 Freelancer 对已提交的 milestone 发起争议"
+				},
+				"refund(uint256,uint256)": {
+					"notice": "超时退款:截止日后,Client 可对一直未提交的 milestone 拿回对应资金"
+				},
+				"resolveDispute(uint256,uint256,bool)": {
+					"notice": "Arbitrator 裁决:releaseToFreelancer=true 放款给 Freelancer,否则退款给 Client"
+				},
+				"submitMilestone(uint256,uint256)": {
+					"notice": "Freelancer 提交某个 milestone 的成果"
+				}
+			},
+			"notice": "资金托管与条件式付款的链上实现。         状态机与数据模型见 docs/data-model.md,函数签名与校验规则见 docs/api-spec.md「B. Smart Contract 接口」。         核心原则(初步设计.md 十七):合约不信任前端,所有关键校验在合约内重做;         资金真相只存在于本合约,SQLite 仅是链下展示镜像。",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"FreelanceEscrow.sol": "FreelanceEscrow"
+		},
+		"evmVersion": "osaka",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"FreelanceEscrow.sol": {
+			"keccak256": "0x83962a99a5fdddf012a0d16b882a77df8259fe46d14669a611076f2c6483107e",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e03850579ef2d08bdec15b6ff3cb4dc31e1545e682fd3c45acd8274bb3c34a1c",
+				"dweb:/ipfs/QmcQ2nC8BdzYBLxj5jnX2azrtXZk6mvMPFqca232zQhG3B"
+			]
+		}
+	},
+	"version": 1
+}

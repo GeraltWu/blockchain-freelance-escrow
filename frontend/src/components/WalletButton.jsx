@@ -69,7 +69,7 @@ export function WalletButton() {
 
   // 已连接:缩写地址 + 余额,点击弹出下拉菜单
   return (
-    <Menu position="bottom-end" withArrow shadow="md" width={220}>
+    <Menu position="bottom-end" withArrow shadow="md" width={240}>
       <Menu.Target>
         <Button variant="light" leftSection={<IconWallet size={18} stroke={1.5} />}>
           <Group gap={6} wrap="nowrap">
@@ -84,7 +84,8 @@ export function WalletButton() {
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>
-          <Mono inherit size="xs" c="dimmed">
+          {/* 完整地址较长,允许在菜单宽度内折行,避免溢出 */}
+          <Mono inherit size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
             {address}
           </Mono>
         </Menu.Label>
