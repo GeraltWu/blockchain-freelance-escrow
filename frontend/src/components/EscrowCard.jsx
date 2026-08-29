@@ -6,9 +6,9 @@ import { StatusBadge } from './StatusBadge.jsx'
 import { formatEth, getReleasedWei } from '../utils/format.js'
 
 // Dashboard 项目列表卡片(见 docs/ui-design.md「三、Page 1:Dashboard - 3」):
-// 标题 / 对方地址 / 状态 Badge / 释放进度条 / 待处理小红点,点击整卡跳转详情页
+// 标题 / 对方地址(仲裁者视角为双方) / 状态 Badge / 释放进度条 / 待处理小红点,点击整卡跳转详情页
 export function EscrowCard({ escrow }) {
-  const { escrow_id: id, title, counterparty, totalWei, status, milestones, pendingLabel } = escrow
+  const { escrow_id: id, title, parties, totalWei, status, milestones, pendingLabel } = escrow
   const releasedWei = getReleasedWei(milestones)
   const pct =
     totalWei === '0' ? 0 : Number((BigInt(releasedWei) * 10000n) / BigInt(totalWei)) / 100
@@ -21,7 +21,14 @@ export function EscrowCard({ escrow }) {
             <Title order={4} lineClamp={1}>
               {title}
             </Title>
-            <AddressText address={counterparty} />
+            {parties.map((p) => (
+              <Group key={p.label} gap={6} wrap="nowrap">
+                <Text size="xs" c="dimmed" w={72}>
+                  {p.label}
+                </Text>
+                <AddressText address={p.address} size="xs" />
+              </Group>
+            ))}
           </Stack>
           <StatusBadge status={status} />
         </Group>

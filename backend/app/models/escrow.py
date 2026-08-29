@@ -10,6 +10,7 @@ class Escrow(db.Model):
     escrow_id = db.Column(db.Integer, unique=True, nullable=False, index=True)  # 链上 escrowId
     client_address = db.Column(db.String(42), nullable=False, index=True)
     freelancer_address = db.Column(db.String(42), nullable=False, index=True)
+    arbitrator_address = db.Column(db.String(42), nullable=False, index=True)  # 该项目仲裁者(创建时指定,逐项目不同,见 data-model.md 1.5)
     title = db.Column(db.String(120))  # 链上不存,纯展示用
     description = db.Column(db.Text)
     total_amount_wei = db.Column(db.String(78), nullable=False)  # wei 字符串,避免精度问题

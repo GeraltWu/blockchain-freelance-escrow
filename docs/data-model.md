@@ -34,6 +34,8 @@ struct Escrow {
     uint256 id;              // 全局自增 ID，也是链下数据库里的 escrow_id
     address client;          // 客户钱包地址
     address freelancer;      // 自由职业者钱包地址
+    address arbitrator;      // 仲裁者地址，由 Client 在创建项目时指定（双方线下协商好后填入），
+                              // 每个项目可以是不同的仲裁者，不再是全局唯一
     uint256 totalAmount;     // 项目总金额，单位 wei（= 所有 milestone.amount 之和）
     uint256 fundedAmount;    // 客户已实际存入合约的金额，单位 wei
     uint256 deadline;        // 项目截止时间，unix timestamp（秒）
@@ -63,14 +65,32 @@ mapping(uint256 => Escrow) public escrows;                      // escrowId => E
 mapping(uint256 => Milestone[]) public escrowMilestones;        // escrowId => Milestone[]
 mapping(address => uint256[]) public clientEscrows;              // client地址 => escrowId[]
 mapping(address => uint256[]) public freelancerEscrows;          // freelancer地址 => escrowId[]
-address public arbitrator;                                       // 唯一仲裁地址（Contract Owner 兼任）
 uint256 public nextEscrowId;                                     // 自增计数器
 ```
 
-### 1.5 关键事件（Event）— 链下监听/索引依赖这些
+### 1.5 仲裁机制说明
+
+仲裁者不是全局唯一、也不是部署者，而是**每个项目由 Client 在创建时指定**——现实场景里对应"双方线下协商好一个都信任的第三方"（可以是行业协会、共同认识的人、专业调解服务的公开地址等），再把这个地址作为参数传进 `createEscrow()`：
 
 ```solidity
-event EscrowCreated(uint256 indexed escrowId, address indexed client, address indexed freelancer, uint256 totalAmount, uint256 deadline);
+function createEscrow(
+    address freelancer,
+    address arbitrator,              // 新增：仲裁者地址，由 Client 在创建时一并指定
+    uint256 deadline,
+    string[] calldata descriptions,
+    uint256[] calldata amounts
+) external returns (uint256 escrowId);
+```
+
+- 校验：`arbitrator != address(0)`、`arbitrator != msg.sender`（仲裁者不能是 Client 自己）、`arbitrator != freelancer`（也不能是 Freelancer 自己），避免自己裁决自己的争议
+- 指定后写入 `escrows[escrowId].arbitrator`，**创建后不提供修改入口**——个人项目不做"中途更换仲裁者"这种复杂场景，如果双方对仲裁者选择有分歧，应该在创建项目前就解决，而不是创建后再改
+- 不同项目可以使用完全不同的仲裁者，不会像"全局唯一仲裁者"方案那样把裁决权集中在一个地址上
+- 前端判断逻辑：拿当前连接地址与**该项目**的 `escrow.arbitrator` 比较（而不是和一个全局变量比较），相等才展示 `Resolve` 相关按钮；`resolveDispute()` 内部同样用 `require(msg.sender == escrows[escrowId].arbitrator)` 校验，非本项目仲裁者调用会被拒绝
+
+### 1.6 关键事件（Event）— 链下监听/索引依赖这些
+
+```solidity
+event EscrowCreated(uint256 indexed escrowId, address indexed client, address indexed freelancer, address arbitrator, uint256 totalAmount, uint256 deadline);
 event EscrowFunded(uint256 indexed escrowId, uint256 amount);
 event MilestoneSubmitted(uint256 indexed escrowId, uint256 indexed milestoneIndex);
 event MilestoneApproved(uint256 indexed escrowId, uint256 indexed milestoneIndex, uint256 amountReleased);
@@ -97,6 +117,7 @@ event Refunded(uint256 indexed escrowId, uint256 amount);
 | escrow_id | Integer, unique, not null | **链上的 escrowId**，与合约里的 `Escrow.id` 一一对应 |
 | client_address | String(42), not null, indexed | 客户钱包地址 |
 | freelancer_address | String(42), not null, indexed | 自由职业者钱包地址 |
+| arbitrator_address | String(42), not null, indexed | 该项目指定的仲裁者地址（由 Client 创建时指定，逐项目不同，见数据模型 1.5） |
 | title | String(120) | 项目标题（链上不存，纯展示用） |
 | description | Text | 项目描述 |
 | total_amount_wei | String(78) | 总金额（用字符串存，避免大整数精度问题） |
@@ -112,6 +133,7 @@ event Refunded(uint256 indexed escrowId, uint256 amount);
   "escrow_id": 1,                            // 链上 escrowId，前端调用合约要用这个
   "client_address": "0x123abc...",           // 40位十六进制 + 0x 前缀
   "freelancer_address": "0x456def...",
+  "arbitrator_address": "0x789ghi...",        // 双方创建项目前协商好的第三方仲裁地址
   "title": "个人作品集网站开发",                // 纯展示，不影响资金逻辑
   "description": "需要一个响应式的个人网站，包含首页/项目页/联系页",
   "total_amount_wei": "1000000000000000000", // 1 ETH，以 wei 为单位的字符串

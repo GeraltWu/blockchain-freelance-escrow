@@ -6,11 +6,6 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
-				"stateMutability": "nonpayable",
-				"type": "constructor"
-			},
-			{
 				"anonymous": false,
 				"inputs": [
 					{
@@ -79,6 +74,12 @@
 						"indexed": true,
 						"internalType": "address",
 						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "arbitrator",
 						"type": "address"
 					},
 					{
@@ -198,19 +199,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "arbitrator",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -239,6 +227,11 @@
 					{
 						"internalType": "address",
 						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "arbitrator",
 						"type": "address"
 					},
 					{
@@ -340,6 +333,11 @@
 					{
 						"internalType": "address",
 						"name": "freelancer",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "arbitrator",
 						"type": "address"
 					},
 					{
@@ -457,6 +455,11 @@
 							{
 								"internalType": "address",
 								"name": "freelancer",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "arbitrator",
 								"type": "address"
 							},
 							{
@@ -722,9 +725,10 @@
 		"devdoc": {
 			"kind": "dev",
 			"methods": {
-				"createEscrow(address,uint256,string[],uint256[])": {
+				"createEscrow(address,address,uint256,string[],uint256[])": {
 					"params": {
 						"amounts": "每个 milestone 的金额(wei)",
+						"arbitrator": "双方线下协商好的仲裁者地址(逐项目不同,见 data-model.md 1.5)",
 						"descriptions": "每个 milestone 的描述,顺序与 amounts 对应"
 					}
 				}
@@ -738,7 +742,7 @@
 				"approveMilestone(uint256,uint256)": {
 					"notice": "Client 批准并放款:资金释放给 Freelancer(approve 与 release 同一笔交易)"
 				},
-				"createEscrow(address,uint256,string[],uint256[])": {
+				"createEscrow(address,address,uint256,string[],uint256[])": {
 					"notice": "Client 创建项目(只登记结构,不转账)"
 				},
 				"fundEscrow(uint256)": {
@@ -751,7 +755,7 @@
 					"notice": "超时退款:截止日后,Client 可对一直未提交的 milestone 拿回对应资金"
 				},
 				"resolveDispute(uint256,uint256,bool)": {
-					"notice": "Arbitrator 裁决:releaseToFreelancer=true 放款给 Freelancer,否则退款给 Client"
+					"notice": "Arbitrator 裁决:releaseToFreelancer=true 放款给 Freelancer,否则退款给 Client         调用者必须是「该项目」的 arbitrator(逐项目指定,非全局唯一,见 data-model.md 1.5)"
 				},
 				"submitMilestone(uint256,uint256)": {
 					"notice": "Freelancer 提交某个 milestone 的成果"
@@ -778,11 +782,11 @@
 	},
 	"sources": {
 		"FreelanceEscrow.sol": {
-			"keccak256": "0x83962a99a5fdddf012a0d16b882a77df8259fe46d14669a611076f2c6483107e",
+			"keccak256": "0x1e1dd140801d41ac3e251988111f1c21d2064e24c07c6a21c3203ee303ad5ed4",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e03850579ef2d08bdec15b6ff3cb4dc31e1545e682fd3c45acd8274bb3c34a1c",
-				"dweb:/ipfs/QmcQ2nC8BdzYBLxj5jnX2azrtXZk6mvMPFqca232zQhG3B"
+				"bzz-raw://72fe686f4666ce26d0af77806dc87cdb93e7f6faacfd4ab324f7b7fce503de3a",
+				"dweb:/ipfs/QmbUd9Mf9EzLRsD8p61iKhQ8xkVzWTb9wwSMDnZhpbSu2x"
 			]
 		}
 	},

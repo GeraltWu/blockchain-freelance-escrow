@@ -52,6 +52,7 @@ export function CreateEscrow() {
   const form = useForm({
     initialValues: {
       freelancerAddress: '',
+      arbitratorAddress: '',
       title: '',
       description: '',
       deadline: null,
@@ -63,6 +64,16 @@ export function CreateEscrow() {
         if (!isEthAddress(v)) return 'Invalid Ethereum address (0x + 40 hex chars)'
         if (address && v.toLowerCase() === address.toLowerCase()) {
           return 'Cannot create an escrow with yourself as freelancer'
+        }
+        return null
+      },
+      arbitratorAddress: (v, values) => {
+        if (!isEthAddress(v)) return 'Invalid Ethereum address (0x + 40 hex chars)'
+        if (address && v.toLowerCase() === address.toLowerCase()) {
+          return 'Cannot be the arbitrator of your own escrow'
+        }
+        if (values.freelancerAddress && v.toLowerCase() === values.freelancerAddress.toLowerCase()) {
+          return 'Arbitrator cannot be the freelancer'
         }
         return null
       },
@@ -108,7 +119,7 @@ export function CreateEscrow() {
 
   const nextStep = () => {
     if (active === 0) {
-      const invalid = ['freelancerAddress', 'title', 'deadline'].some(
+      const invalid = ['freelancerAddress', 'arbitratorAddress', 'title', 'deadline'].some(
         (f) => form.validateField(f)[f] != null,
       )
       if (invalid) return
@@ -128,7 +139,7 @@ export function CreateEscrow() {
   // 三段式通知;成功后原设计还要弹 fund 确认 Modal(等合约接入后补上)
   const handleCreate = async () => {
     if (!address || !signer) return
-    const { freelancerAddress, title, description, deadline, milestones } = form.values
+    const { freelancerAddress, arbitratorAddress, title, description, deadline, milestones } = form.values
 
     setCreating(true)
     notifications.show({
@@ -144,6 +155,7 @@ export function CreateEscrow() {
       const { escrowId, txHash, blockNumber } = await createEscrowOnChain({
         signer,
         freelancer: freelancerAddress,
+        arbitrator: arbitratorAddress,
         deadline: dayjs(deadline).unix(), // 合约要 unix 秒(见 docs/api-spec.md 4.1)
         descriptions: milestones.map((m) => m.description.trim()),
         amounts: milestones.map((m) => parseEther(String(m.amountEth))),
@@ -174,6 +186,7 @@ export function CreateEscrow() {
         escrow_id: escrowId,
         client_address: address,
         freelancer_address: freelancerAddress,
+        arbitrator_address: arbitratorAddress,
         title: title.trim(),
         description: description.trim() || undefined,
         total_amount_wei: totalWei.toString(),
@@ -257,6 +270,13 @@ export function CreateEscrow() {
               placeholder="0x…"
               withAsterisk
               {...form.getInputProps('freelancerAddress')}
+            />
+            <TextInput
+              label="Arbitrator wallet address"
+              description="A third party you both trust — they only act if a dispute is raised."
+              placeholder="0x…"
+              withAsterisk
+              {...form.getInputProps('arbitratorAddress')}
             />
             <TextInput label="Project title" withAsterisk {...form.getInputProps('title')} />
             <Textarea
@@ -348,6 +368,10 @@ export function CreateEscrow() {
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">Freelancer</Text>
                   <AddressText address={form.values.freelancerAddress} />
+                </Group>
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">Arbitrator</Text>
+                  <AddressText address={form.values.arbitratorAddress} />
                 </Group>
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">Deadline</Text>

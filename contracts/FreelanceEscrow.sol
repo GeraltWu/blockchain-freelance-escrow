@@ -28,6 +28,7 @@ contract FreelanceEscrow {
         uint256 id;             // 全局自增 id,即链下数据库的 escrow_id
         address client;
         address freelancer;
+        address arbitrator;     // 该项目仲裁者(创建时由 Client 指定,逐项目不同,见 data-model.md 1.5)
         uint256 totalAmount;    // 所有 milestone.amount 之和
         uint256 fundedAmount;   // 实际存入金额(= totalAmount,一次性全额存入)
         uint256 deadline;       // unix 秒
@@ -50,21 +51,16 @@ contract FreelanceEscrow {
     mapping(uint256 => Milestone[]) public escrowMilestones;   // escrowId => Milestone[]
     mapping(address => uint256[]) public clientEscrows;        // client 地址 => escrowId[]
     mapping(address => uint256[]) public freelancerEscrows;    // freelancer 地址 => escrowId[]
-    address public arbitrator;                                 // 仲裁地址(Contract Owner 兼任)
     uint256 public nextEscrowId;                               // 自增计数器,第一个项目 id = 0
 
-    // ---------- 事件(docs/data-model.md 1.5,链下索引依赖) ----------
-    event EscrowCreated(uint256 indexed escrowId, address indexed client, address indexed freelancer, uint256 totalAmount, uint256 deadline);
+    // ---------- 事件(docs/data-model.md 1.6,链下索引依赖) ----------
+    event EscrowCreated(uint256 indexed escrowId, address indexed client, address indexed freelancer, address arbitrator, uint256 totalAmount, uint256 deadline);
     event EscrowFunded(uint256 indexed escrowId, uint256 amount);
     event MilestoneSubmitted(uint256 indexed escrowId, uint256 indexed milestoneIndex);
     event MilestoneApproved(uint256 indexed escrowId, uint256 indexed milestoneIndex, uint256 amountReleased);
     event DisputeRaised(uint256 indexed escrowId, uint256 indexed milestoneIndex, address raisedBy);
     event DisputeResolved(uint256 indexed escrowId, uint256 indexed milestoneIndex, bool releasedToFreelancer);
     event Refunded(uint256 indexed escrowId, uint256 amount);
-
-    constructor() {
-        arbitrator = msg.sender;
-    }
 
     // ---------- 访问控制修饰器(初步设计.md 十八.1) ----------
     modifier onlyClient(uint256 escrowId) {
@@ -77,11 +73,6 @@ contract FreelanceEscrow {
         _;
     }
 
-    modifier onlyArbitrator() {
-        require(msg.sender == arbitrator, "Only arbitrator can call");
-        _;
-    }
-
     modifier validMilestone(uint256 escrowId, uint256 milestoneIndex) {
         require(milestoneIndex < escrows[escrowId].milestoneCount, "Milestone index out of range");
         _;
@@ -90,16 +81,21 @@ contract FreelanceEscrow {
     // ---------- 核心函数(docs/api-spec.md 模块四) ----------
 
     /// @notice Client 创建项目(只登记结构,不转账)
+    /// @param arbitrator  双方线下协商好的仲裁者地址(逐项目不同,见 data-model.md 1.5)
     /// @param descriptions 每个 milestone 的描述,顺序与 amounts 对应
     /// @param amounts      每个 milestone 的金额(wei)
     function createEscrow(
         address freelancer,
+        address arbitrator,
         uint256 deadline,
         string[] calldata descriptions,
         uint256[] calldata amounts
     ) external returns (uint256 escrowId) {
         require(freelancer != address(0), "Freelancer is zero address");
         require(freelancer != msg.sender, "Freelancer cannot be client");
+        require(arbitrator != address(0), "Arbitrator is zero address");
+        require(arbitrator != msg.sender, "Arbitrator cannot be client");
+        require(arbitrator != freelancer, "Arbitrator cannot be freelancer");
         require(deadline > block.timestamp, "Deadline must be in the future");
         require(descriptions.length == amounts.length, "Descriptions and amounts length mismatch");
         require(amounts.length > 0, "At least one milestone required");
@@ -110,6 +106,7 @@ contract FreelanceEscrow {
         escrow.id = escrowId;
         escrow.client = msg.sender;
         escrow.freelancer = freelancer;
+        escrow.arbitrator = arbitrator;
         escrow.deadline = deadline;
         escrow.status = EscrowStatus.CREATED;
         escrow.milestoneCount = descriptions.length;
@@ -137,7 +134,7 @@ contract FreelanceEscrow {
         clientEscrows[msg.sender].push(escrowId);
         freelancerEscrows[freelancer].push(escrowId);
 
-        emit EscrowCreated(escrowId, msg.sender, freelancer, total, deadline);
+        emit EscrowCreated(escrowId, msg.sender, freelancer, arbitrator, total, deadline);
     }
 
     /// @notice Client 一次性全额存入资金,项目进入 FUNDED
@@ -209,13 +206,14 @@ contract FreelanceEscrow {
     }
 
     /// @notice Arbitrator 裁决:releaseToFreelancer=true 放款给 Freelancer,否则退款给 Client
+    ///         调用者必须是「该项目」的 arbitrator(逐项目指定,非全局唯一,见 data-model.md 1.5)
     function resolveDispute(uint256 escrowId, uint256 milestoneIndex, bool releaseToFreelancer)
         external
-        onlyArbitrator()
         validMilestone(escrowId, milestoneIndex)
     {
         Escrow storage escrow = escrows[escrowId];
         Milestone storage milestone = escrowMilestones[escrowId][milestoneIndex];
+        require(msg.sender == escrow.arbitrator, "Only this escrow's arbitrator can resolve");
         require(milestone.status == MilestoneStatus.DISPUTED, "Milestone is not disputed");
 
         // checks-effects-interactions:先改状态再转账

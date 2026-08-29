@@ -31,14 +31,14 @@ async function sendTx({ signer, method, args = [], value, onSubmitted }) {
   return { txHash: receipt.hash, blockNumber: receipt.blockNumber }
 }
 
-// createEscrow(freelancer, deadline, descriptions[], amounts[]) → { escrowId, txHash }
+// createEscrow(freelancer, arbitrator, deadline, descriptions[], amounts[]) → { escrowId, txHash }
 // 函数签名见 docs/api-spec.md 4.1;escrowId 从 EscrowCreated 事件解析
-export async function createEscrowOnChain({ signer, freelancer, deadline, descriptions, amounts, onSubmitted }) {
+export async function createEscrowOnChain({ signer, freelancer, arbitrator, deadline, descriptions, amounts, onSubmitted }) {
   if (!CONTRACT_ADDRESS) {
     throw new Error('CONTRACT_NOT_DEPLOYED')
   }
   const contract = getContract(signer)
-  const tx = await contract.createEscrow(freelancer, deadline, descriptions, amounts)
+  const tx = await contract.createEscrow(freelancer, arbitrator, deadline, descriptions, amounts)
   onSubmitted?.(tx.hash)
   const receipt = await tx.wait()
 

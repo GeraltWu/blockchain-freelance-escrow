@@ -34,7 +34,6 @@ import { STATUS_COLORS } from '../utils/statusColors.js'
 import {
   approveMilestoneOnChain,
   fundEscrowOnChain,
-  getContract,
   raiseDisputeOnChain,
   refundOnChain,
   resolveDisputeOnChain,
@@ -50,11 +49,10 @@ import {
 export function EscrowDetail() {
   const { escrowId } = useParams()
   const id = Number(escrowId)
-  const { address, signer, provider } = useWallet()
+  const { address, signer } = useWallet()
 
   const [escrow, setEscrow] = useState(null)
   const [loadState, setLoadState] = useState('loading') // loading | ok | not-found | error
-  const [arbitrator, setArbitrator] = useState(null)
   const [actionBusy, setActionBusy] = useState(null) // 进行中的操作 id,如 'submit-0'
   const [confirm, setConfirm] = useState(null) // { type, milestoneIndex }
   const [reloadKey, setReloadKey] = useState(0)
@@ -86,23 +84,6 @@ export function EscrowDetail() {
   // 重试 / 操作完成后刷新:改 key 触发上面的 effect 重新拉取
   const reload = useCallback(() => setReloadKey((k) => k + 1), [])
 
-  // 仲裁地址(view 调用,不需要签名)
-  useEffect(() => {
-    if (!provider) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const a = await getContract(provider).arbitrator()
-        if (!cancelled) setArbitrator(a)
-      } catch {
-        // 合约未部署等,忽略(仲裁按钮不出现而已)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [provider])
-
   // ---- 派生状态 ----
   const myAddress = address?.toLowerCase() ?? null
   const role = escrow && myAddress
@@ -112,7 +93,10 @@ export function EscrowDetail() {
         ? 'freelancer'
         : null
     : null
-  const isArbitrator = Boolean(arbitrator && myAddress === arbitrator.toLowerCase())
+  // 仲裁者逐项目不同:与「该项目」的 arbitrator_address 比较,而不是全局合约变量(api-spec 4.6)
+  const isArbitrator = Boolean(
+    escrow?.arbitrator_address && myAddress === escrow.arbitrator_address.toLowerCase(),
+  )
   const counterparty = escrow
     ? role === 'client' ? escrow.freelancer_address : escrow.client_address
     : null
@@ -414,6 +398,11 @@ export function EscrowDetail() {
             <Text size="sm" c="dimmed">
               with <AddressText address={counterparty} />
             </Text>
+            {escrow.arbitrator_address && (
+              <Text size="sm" c="dimmed">
+                · Arbitrator <AddressText address={escrow.arbitrator_address} />
+              </Text>
+            )}
           </Group>
         </Stack>
         {deadlineText && (

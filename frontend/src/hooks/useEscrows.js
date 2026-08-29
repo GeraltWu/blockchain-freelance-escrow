@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getEscrowById, getEscrows } from '../api/escrows.js'
 import { mapEscrowToCard } from '../utils/escrowMapper.js'
 
-// 加载某个地址参与的全部 escrow(不区分角色,由 mapEscrowToCard 逐条推导):
+// 加载某个地址参与的全部 escrow(client/freelancer/arbitrator 三种身份,由 mapEscrowToCard 逐条推导):
 // 列表 + 每条详情拿 milestones;数据只来自后端 API,失败时返回 error 由页面展示
 export function useEscrows({ address }) {
   const [state, setState] = useState({ loading: true, error: null, escrows: [] })

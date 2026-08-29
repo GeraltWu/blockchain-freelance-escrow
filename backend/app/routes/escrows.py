@@ -9,7 +9,7 @@ from ..utils.validators import is_valid_address, is_valid_tx_hash, is_valid_wei,
 bp = Blueprint('escrows', __name__)
 
 ESCROW_STATUSES = ('CREATED', 'FUNDED', 'COMPLETED', 'CANCELLED')
-ROLES = ('client', 'freelancer')
+ROLES = ('client', 'freelancer', 'arbitrator')
 
 
 def _serialize_escrow(escrow, include_milestones=False):
@@ -18,6 +18,7 @@ def _serialize_escrow(escrow, include_milestones=False):
         'escrow_id': escrow.escrow_id,
         'client_address': escrow.client_address,
         'freelancer_address': escrow.freelancer_address,
+        'arbitrator_address': escrow.arbitrator_address,
         'title': escrow.title,
         'total_amount_wei': escrow.total_amount_wei,
         'status': escrow.status,
@@ -70,10 +71,14 @@ def list_escrows():
             query = query.filter(Escrow.client_address == normalized)
         elif role == 'freelancer':
             query = query.filter(Escrow.freelancer_address == normalized)
+        elif role == 'arbitrator':
+            query = query.filter(Escrow.arbitrator_address == normalized)
         else:
+            # 不传 role 时三种身份都匹配:仲裁者也能在 Dashboard 看到自己被指定的项目
             query = query.filter(db.or_(
                 Escrow.client_address == normalized,
                 Escrow.freelancer_address == normalized,
+                Escrow.arbitrator_address == normalized,
             ))
     if status:
         query = query.filter(Escrow.status == status)
@@ -114,7 +119,7 @@ def create_escrow():
     if not isinstance(data, dict):
         return api_error('VALIDATION_ERROR', 'request body must be a JSON object', 400)
 
-    required = ('escrow_id', 'client_address', 'freelancer_address', 'title',
+    required = ('escrow_id', 'client_address', 'freelancer_address', 'arbitrator_address', 'title',
                 'total_amount_wei', 'deadline', 'tx_hash_create', 'milestones')
     missing = [f for f in required if data.get(f) in (None, '')]
     if missing:
@@ -126,11 +131,17 @@ def create_escrow():
     if Escrow.query.filter_by(escrow_id=escrow_id).first():
         return api_error('ESCROW_ALREADY_EXISTS', f'escrow_id={escrow_id} already exists', 409)
 
-    for key in ('client_address', 'freelancer_address'):
+    for key in ('client_address', 'freelancer_address', 'arbitrator_address'):
         if not is_valid_address(data[key]):
             return api_error('INVALID_ADDRESS', f'{key} must be 0x + 40 hex chars', 400)
     if data['client_address'].lower() == data['freelancer_address'].lower():
         return api_error('VALIDATION_ERROR', 'client_address and freelancer_address must differ', 400)
+    if data['arbitrator_address'].lower() in (data['client_address'].lower(), data['freelancer_address'].lower()):
+        return api_error(
+            'VALIDATION_ERROR',
+            'arbitrator_address must differ from client_address and freelancer_address',
+            400,
+        )
 
     title = str(data['title']).strip()
     if not title or len(title) > 120:
@@ -179,6 +190,7 @@ def create_escrow():
         escrow_id=escrow_id,
         client_address=normalize_address(data['client_address']),
         freelancer_address=normalize_address(data['freelancer_address']),
+        arbitrator_address=normalize_address(data['arbitrator_address']),
         title=title,
         description=str(data.get('description') or '').strip() or None,
         total_amount_wei=data['total_amount_wei'],

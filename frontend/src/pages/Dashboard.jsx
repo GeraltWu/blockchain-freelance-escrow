@@ -18,6 +18,7 @@ import {
   IconAlertTriangle,
   IconBriefcase,
   IconCircleCheck,
+  IconGavel,
   IconInbox,
   IconLock,
   IconPlus,
@@ -35,7 +36,26 @@ import { formatEth, getReleasedWei } from '../utils/format.js'
 // 数据只来自后端 GET /api/escrows(+ 详情拿 milestones),按当前钱包地址过滤;
 // 未连接钱包时提示连接
 
-function EmptyState() {
+function EmptyState({ role }) {
+  // 仲裁者视角的空状态:不需要引导去创建项目(仲裁身份由 client 创建时指定)
+  if (role === 'arbitrator') {
+    return (
+      <Center py={64}>
+        <Stack align="center" gap="xs" maw={360}>
+          <ThemeIcon variant="light" color="gray" size={64} radius="xl">
+            <IconGavel size={32} stroke={1.25} />
+          </ThemeIcon>
+          <Title order={4} ta="center">
+            No arbitration projects yet
+          </Title>
+          <Text size="sm" c="dimmed" ta="center">
+            You become an arbitrator when a client designates your address during escrow
+            creation. Disputed milestones will show up here with a red badge.
+          </Text>
+        </Stack>
+      </Center>
+    )
+  }
   return (
     <Center py={64}>
       <Stack align="center" gap="xs" maw={360}>
@@ -85,7 +105,7 @@ export function Dashboard() {
             An overview of your escrow projects — see at a glance which ones need your action.
           </Text>
         </div>
-        <ConnectPrompt description="Connect MetaMask (Sepolia) to see your escrows — as client, freelancer, or both." />
+        <ConnectPrompt description="Connect MetaMask (Sepolia) to see your escrows — as client, freelancer, or arbitrator." />
       </Stack>
     )
   }
@@ -95,13 +115,16 @@ export function Dashboard() {
 }
 
 function DashboardContent({ address }) {
-  // 同一个钱包既是某些项目的 Client,也是另一些项目的 Freelancer,两种视角分开看
-  const [role, setRole] = useState('client') // client | freelancer
+  // 同一个钱包可能同时是某些项目的 Client、另一些项目的 Freelancer、还有被指定为仲裁者的项目,
+  // 三种视角分开看
+  const [role, setRole] = useState('client') // client | freelancer | arbitrator
 
   const { loading, error, escrows, reload } = useEscrows({ address })
   const clientEscrows = escrows.filter((e) => e.role === 'client')
   const freelancerEscrows = escrows.filter((e) => e.role === 'freelancer')
-  const myEscrows = role === 'client' ? clientEscrows : freelancerEscrows
+  const arbitratorEscrows = escrows.filter((e) => e.role === 'arbitrator')
+  const myEscrows =
+    role === 'client' ? clientEscrows : role === 'freelancer' ? freelancerEscrows : arbitratorEscrows
 
   if (loading) {
     return <DashboardSkeleton />
@@ -113,7 +136,8 @@ function DashboardContent({ address }) {
     (sum, e) => sum + BigInt(e.totalWei) - BigInt(getReleasedWei(e.milestones)),
     0n,
   )
-  // pendingLabel 由 mapper 按角色推导:client=有 SUBMITTED 待确认,freelancer=有 PENDING 待提交
+  // pendingLabel 由 mapper 按角色推导:client=有 SUBMITTED 待确认,freelancer=有 PENDING 待提交,
+  // arbitrator=有 DISPUTED 待裁决
   const pendingCount = myEscrows.filter((e) => e.pendingLabel).length
   const completedCount = myEscrows.filter((e) => e.status === 'COMPLETED').length
 
@@ -127,10 +151,15 @@ function DashboardContent({ address }) {
           { icon: IconLock, label: 'Total Locked Funds', value: formatEth(lockedWei.toString()), unit: 'ETH' },
           { icon: IconAlertCircle, label: 'Awaiting Your Approval', value: String(pendingCount) },
         ]
-      : [
-          { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
-          { icon: IconAlertCircle, label: 'Ready to Submit', value: String(pendingCount) },
-        ]
+      : role === 'freelancer'
+        ? [
+            { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
+            { icon: IconAlertCircle, label: 'Ready to Submit', value: String(pendingCount) },
+          ]
+        : [
+            { icon: IconGavel, label: 'Disputes Awaiting Decision', value: String(pendingCount) },
+            { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
+          ]
   const stats = [commonStats[0], ...roleStats, commonStats[1]]
 
   return (
@@ -149,6 +178,7 @@ function DashboardContent({ address }) {
           data={[
             { value: 'client', label: `As Client · ${clientEscrows.length}` },
             { value: 'freelancer', label: `As Freelancer · ${freelancerEscrows.length}` },
+            { value: 'arbitrator', label: `As Arbitrator · ${arbitratorEscrows.length}` },
           ]}
         />
       </Group>
@@ -186,7 +216,7 @@ function DashboardContent({ address }) {
           </SimpleGrid>
 
           {myEscrows.length === 0 ? (
-            <EmptyState />
+            <EmptyState role={role} />
           ) : (
             <Stack gap="md">
               {myEscrows.map((e) => (

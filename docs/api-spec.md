@@ -25,7 +25,7 @@ GET /api/escrows
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | address | string | 否 | 按钱包地址过滤（客户或自由职业者） |
-| role | string | 否 | 配合 address 使用，`client` 或 `freelancer`，不传则两者都匹配 |
+| role | string | 否 | 配合 address 使用，`client` / `freelancer` / `arbitrator`，不传则三者都匹配 |
 | status | string | 否 | 按状态过滤：`CREATED`/`FUNDED`/`COMPLETED`/`CANCELLED` |
 | page | integer | 否 | 页码，默认 1 |
 | page_size | integer | 否 | 每页条数，默认 10，最大 50 |
@@ -55,6 +55,7 @@ GET /api/escrows?address=0x123abc...&role=client&status=FUNDED&page=1&page_size=
       "escrow_id": 1,                // 链上 escrowId，操作合约时要用它
       "client_address": "0x123abc...",
       "freelancer_address": "0x456def...",
+      "arbitrator_address": "0x789ghi...",
       "title": "个人作品集网站开发",
       "total_amount_wei": "1000000000000000000",  // 1 ETH
       "status": "FUNDED",
@@ -90,6 +91,7 @@ GET /api/escrows/1
   "escrow_id": 1,
   "client_address": "0x123abc...",
   "freelancer_address": "0x456def...",
+  "arbitrator_address": "0x789ghi...",
   "title": "个人作品集网站开发",
   "description": "需要一个响应式的个人网站，包含首页/项目页/联系页",
   "total_amount_wei": "1000000000000000000",
@@ -135,6 +137,7 @@ POST /api/escrows
 | escrow_id | integer | 是 | 链上返回的 escrowId（从 `EscrowCreated` 事件里拿到） |
 | client_address | string | 是 | 客户地址 |
 | freelancer_address | string | 是 | 自由职业者地址 |
+| arbitrator_address | string | 是 | 该项目指定的仲裁者地址（双方创建前线下协商好） |
 | title | string | 是 | 项目标题，最长 120 字符 |
 | description | string | 否 | 项目描述 |
 | total_amount_wei | string | 是 | 总金额，字符串形式的 wei |
@@ -156,6 +159,7 @@ POST /api/escrows
   "escrow_id": 1,
   "client_address": "0x123abc...",
   "freelancer_address": "0x456def...",
+  "arbitrator_address": "0x789ghi...",
   "title": "个人作品集网站开发",
   "description": "需要一个响应式的个人网站",
   "total_amount_wei": "1000000000000000000",
@@ -375,6 +379,7 @@ POST /api/transactions
 ```solidity
 function createEscrow(
     address freelancer,              // 自由职业者地址
+    address arbitrator,              // 仲裁者地址，由 Client 与 Freelancer 线下协商好后指定
     uint256 deadline,                // 截止时间，unix timestamp
     string[] calldata descriptions,  // 每个 milestone 的描述
     uint256[] calldata amounts       // 每个 milestone 的金额（wei），顺序与 descriptions 对应
@@ -382,7 +387,7 @@ function createEscrow(
 ```
 
 - 调用者：Client（`msg.sender` 即为 client）
-- 校验：`freelancer != address(0)`、`freelancer != msg.sender`、`deadline > block.timestamp`、`descriptions.length == amounts.length`、`amounts.length > 0`
+- 校验：`freelancer != address(0)`、`freelancer != msg.sender`、`arbitrator != address(0)`、`arbitrator != msg.sender`、`arbitrator != freelancer`、`deadline > block.timestamp`、`descriptions.length == amounts.length`、`amounts.length > 0`
 - 不需要 `payable`，此步骤只登记项目结构，不转账
 - 触发事件：`EscrowCreated`
 
@@ -390,6 +395,7 @@ function createEscrow(
 ```javascript
 const tx = await contract.createEscrow(
   freelancerAddress,
+  arbitratorAddress,                                    // 双方协商好的仲裁地址
   Math.floor(new Date("2026-12-01").getTime() / 1000), // deadline
   ["UI Design", "Frontend", "Backend"],
   [ethers.parseEther("0.2"), ethers.parseEther("0.3"), ethers.parseEther("0.5")]
@@ -467,10 +473,11 @@ function resolveDispute(
 ) external;
 ```
 
-- 调用者：必须是 `arbitrator`（合约里配置的仲裁地址）
+- 调用者：必须是**该项目**的 `escrow.arbitrator`（创建时由 Client 指定，每个项目可能不同，不是全局唯一，详见数据模型文档 1.5）
 - 校验：`milestone.status == DISPUTED`
 - 效果：按 `releaseToFreelancer` 转账给对应一方，milestone 状态改为 `RELEASED` 或 `REFUNDED`
 - 触发事件：`DisputeResolved`
+- 前端判断：拿当前连接地址与**该项目**的 `escrow.arbitrator` 比较，相等才展示 `Resolve` 相关按钮；非本项目仲裁者调用会被 `require` 拒绝
 
 ---
 
@@ -509,6 +516,6 @@ function getFreelancerEscrows(address freelancer) external view returns (uint256
 | submitMilestone | ❌ | ✅（仅本人项目） | ❌ | ❌ |
 | approveMilestone | ✅（仅本人项目） | ❌ | ❌ | ❌ |
 | raiseDispute | ✅ | ✅ | ❌ | ❌ |
-| resolveDispute | ❌ | ❌ | ✅ | ❌ |
+| resolveDispute | ❌ | ❌ | ✅（仅本人被指定为仲裁者的项目） | ❌ |
 | refund | ✅（仅本人项目） | ❌ | ❌ | ❌ |
 | get* (view) | ✅ | ✅ | ✅ | ✅ |
