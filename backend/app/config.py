@@ -22,5 +22,5 @@ class Config:
 
     # 允许跨域的前端地址,逗号分隔
     CORS_ORIGINS = os.getenv(
-        'CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173'
+        'CORS_ORIGINS', 'http://localhost:61130,http://127.0.0.1:61130'
     )

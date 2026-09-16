@@ -3,10 +3,12 @@ import {
   Button,
   Card,
   Center,
+  Flex,
   Group,
   Loader,
   Modal,
   Progress,
+  SimpleGrid,
   Stack,
   Text,
   Timeline,
@@ -282,7 +284,7 @@ export function EscrowDetail() {
     if (m.status === 'SUBMITTED') {
       if (role === 'client') {
         return (
-          <Group gap="xs">
+          <Group gap="xs" wrap="wrap" className="mobile-action-group">
             <Button
               color="green"
               size="xs"
@@ -380,7 +382,7 @@ export function EscrowDetail() {
     <Stack gap="lg">
       {/* 顶部信息条(ui-design.md 五.1) */}
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
-        <Stack gap={4} style={{ flex: 1, minWidth: 260 }}>
+        <Stack gap="xs" style={{ flex: 1, minWidth: 0 }}>
           <Button
             component={Link}
             to="/"
@@ -393,20 +395,26 @@ export function EscrowDetail() {
             Back to Dashboard
           </Button>
           <Title order={2}>{escrow.title}</Title>
-          <Group gap="sm" wrap="nowrap">
+          <Flex
+            direction={{ base: 'column', sm: 'row' }}
+            gap={{ base: 4, sm: 'sm' }}
+            align={{ base: 'flex-start', sm: 'center' }}
+          >
             <StatusBadge status={escrow.status} size="lg" />
-            <Text size="sm" c="dimmed">
-              with <AddressText address={counterparty} />
-            </Text>
+            <Group gap={6} wrap="wrap">
+              <Text size="sm" c="dimmed">Counterparty</Text>
+              <AddressText address={counterparty} />
+            </Group>
             {escrow.arbitrator_address && (
-              <Text size="sm" c="dimmed">
-                · Arbitrator <AddressText address={escrow.arbitrator_address} />
-              </Text>
+              <Group gap={6} wrap="wrap">
+                <Text size="sm" c="dimmed">Arbitrator</Text>
+                <AddressText address={escrow.arbitrator_address} />
+              </Group>
             )}
-          </Group>
+          </Flex>
         </Stack>
         {deadlineText && (
-          <Stack gap={0} align="flex-end">
+          <Stack gap={0} align={{ base: 'flex-start', sm: 'flex-end' }}>
             <Text size="xs" c="dimmed">Deadline</Text>
             <Text size="sm" fw={600} c={deadlineColor}>{deadlineText}</Text>
             <Text size="xs" c="dimmed">{deadline.format('YYYY-MM-DD')}</Text>
@@ -417,15 +425,15 @@ export function EscrowDetail() {
       {/* 金额概览(ui-design.md 五.2):已释放/锁定分段进度条 */}
       <Card withBorder padding="lg">
         <Stack gap="sm">
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={4}>
+            <Text size="sm" c="dimmed" ta={{ base: 'left', sm: 'left' }}>
               Total <Mono inherit>{formatEth(escrow.total_amount_wei)} ETH</Mono>
             </Text>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" ta={{ base: 'left', sm: 'right' }}>
               Released <Mono inherit c="green">{formatEth(releasedWei)} ETH</Mono> · Locked{' '}
               <Mono inherit c="blue">{formatEth(lockedWei)} ETH</Mono>
             </Text>
-          </Group>
+          </SimpleGrid>
           <Progress.Root size={24}>
             <Progress.Section value={releasedPct} color="green">
               {releasedPct >= 15 && <Progress.Label>{releasedPct}%</Progress.Label>}
@@ -445,6 +453,7 @@ export function EscrowDetail() {
             </Text>
             <Button
               leftSection={<IconGavel size={14} stroke={1.5} />}
+              w={{ base: '100%', sm: 'auto' }}
               loading={actionBusy === 'fund'}
               disabled={!signer}
               onClick={() => setConfirm({ type: 'fund', milestoneIndex: null })}
@@ -462,23 +471,34 @@ export function EscrowDetail() {
             key={m.milestone_index}
             color={STATUS_COLORS[m.status]}
             title={
-              <Group justify="space-between" wrap="nowrap" gap="sm">
-                <Text fw={600} size="sm">
+              <Flex
+                justify="space-between"
+                direction={{ base: 'column', sm: 'row' }}
+                align={{ base: 'flex-start', sm: 'center' }}
+                gap={{ base: 6, sm: 'sm' }}
+              >
+                <Text fw={600} size="sm" style={{ overflowWrap: 'anywhere' }}>
                   M{m.milestone_index + 1} · {m.description}
                 </Text>
                 <Group gap="sm" wrap="nowrap">
                   <Mono size="sm" c="dimmed">{formatEth(m.amount_wei)} ETH</Mono>
                   <StatusBadge status={m.status} />
                 </Group>
-              </Group>
+              </Flex>
             }
           >
-            <Group justify="space-between" align="center" mt={4}>
+            <Flex
+              justify="space-between"
+              direction={{ base: 'column', sm: 'row' }}
+              align={{ base: 'flex-start', sm: 'center' }}
+              gap="xs"
+              mt="xs"
+            >
               <Text size="xs" c="dimmed">
                 {m.submitted_at ? `Submitted ${dayjs(m.submitted_at).format('YYYY-MM-DD HH:mm')}` : 'Not submitted yet'}
               </Text>
               {milestoneActions(m)}
-            </Group>
+            </Flex>
           </Timeline.Item>
         ))}
       </Timeline>
@@ -502,7 +522,7 @@ export function EscrowDetail() {
               from your wallet into the escrow contract.
             </Text>
             <Text size="sm" c="dimmed">Funds are only released milestone by milestone.</Text>
-            <Group justify="flex-end">
+            <Group justify="flex-end" className="mobile-action-group">
               <Button variant="default" onClick={() => setConfirm(null)}>Cancel</Button>
               <Button onClick={fundEscrow}>Fund {formatEth(escrow.total_amount_wei)} ETH</Button>
             </Group>
@@ -515,7 +535,7 @@ export function EscrowDetail() {
               Mark <Mono inherit fw={600}>M{confirmMilestone.milestone_index + 1}</Mono> as delivered
               and request client approval for <Mono inherit>{formatEth(confirmMilestone.amount_wei)} ETH</Mono>.
             </Text>
-            <Group justify="flex-end">
+            <Group justify="flex-end" className="mobile-action-group">
               <Button variant="default" onClick={() => setConfirm(null)}>Cancel</Button>
               <Button onClick={() => submitMilestone(confirmMilestone)}>Submit</Button>
             </Group>
@@ -530,7 +550,7 @@ export function EscrowDetail() {
               <Mono inherit>{shortenAddress(escrow.freelancer_address)}</Mono>.
             </Text>
             <Text size="sm" c="red">This action is irreversible.</Text>
-            <Group justify="flex-end">
+            <Group justify="flex-end" className="mobile-action-group">
               <Button variant="default" onClick={() => setConfirm(null)}>Cancel</Button>
               <Button color="green" onClick={() => approveMilestone(confirmMilestone)}>
                 Approve & Release
@@ -546,7 +566,7 @@ export function EscrowDetail() {
               arbitrator will review the milestone and decide whether to release or refund the{' '}
               <Mono inherit>{formatEth(confirmMilestone.amount_wei)} ETH</Mono>.
             </Text>
-            <Group justify="flex-end">
+            <Group justify="flex-end" className="mobile-action-group">
               <Button variant="default" onClick={() => setConfirm(null)}>Cancel</Button>
               <Button color="red" onClick={() => raiseDispute(confirmMilestone)}>Raise Dispute</Button>
             </Group>
@@ -559,7 +579,7 @@ export function EscrowDetail() {
               The deadline has passed. Refund <Mono inherit fw={600}>{formatEth(confirmMilestone.amount_wei)} ETH</Mono>{' '}
               of <Mono inherit fw={600}>M{confirmMilestone.milestone_index + 1}</Mono> back to your wallet?
             </Text>
-            <Group justify="flex-end">
+            <Group justify="flex-end" className="mobile-action-group">
               <Button variant="default" onClick={() => setConfirm(null)}>Cancel</Button>
               <Button color="red" onClick={() => refundMilestone(confirmMilestone)}>Refund</Button>
             </Group>
@@ -572,7 +592,7 @@ export function EscrowDetail() {
               Decide on <Mono inherit fw={600}>M{confirmMilestone.milestone_index + 1}</Mono>{' '}
               (<Mono inherit>{formatEth(confirmMilestone.amount_wei)} ETH</Mono>):
             </Text>
-            <Group grow>
+            <Group grow className="mobile-action-group">
               <Button color="green" onClick={() => resolveDispute(confirmMilestone, true)}>
                 Release to Freelancer
               </Button>

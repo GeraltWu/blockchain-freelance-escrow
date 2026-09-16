@@ -13,7 +13,7 @@ export function AppLayout() {
     <AppShell
       header={{ height: 60 }}
       navbar={{ width: 240, breakpoint: 'sm', collapsed: { mobile: !opened } }}
-      padding="md"
+      padding={{ base: 'xs', sm: 'md' }}
     >
       <AppShell.Header>
         <HeaderBar opened={opened} onToggle={toggle} />

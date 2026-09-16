@@ -4,6 +4,7 @@ import {
   Card,
   Center,
   Divider,
+  Flex,
   Group,
   NumberInput,
   Stack,
@@ -262,8 +263,8 @@ export function CreateEscrow() {
         </Text>
       </div>
 
-      <Stepper active={active} onStepClick={setActive} allowNextStepsSelect={false}>
-        <Stepper.Step label="Basic Info" description="Project details">
+      <Stepper active={active} onStepClick={setActive} allowNextStepsSelect={false} size="sm">
+        <Stepper.Step label="Basic Info" description={<Text span visibleFrom="sm">Project details</Text>}>
           <Stack gap="md" mt="lg" maw={560}>
             <TextInput
               label="Freelancer wallet address"
@@ -300,10 +301,15 @@ export function CreateEscrow() {
           </Stack>
         </Stepper.Step>
 
-        <Stepper.Step label="Milestones" description="Phases & amounts">
+        <Stepper.Step label="Milestones" description={<Text span visibleFrom="sm">Phases & amounts</Text>}>
           <Stack gap="md" mt="lg" maw={640}>
             {form.values.milestones.map((_, index) => (
-              <Group key={form.key(`milestones.${index}.description`)} gap="sm" align="flex-start" wrap="nowrap">
+              <Flex
+                key={form.key(`milestones.${index}.description`)}
+                gap="sm"
+                align={{ base: 'stretch', sm: 'flex-start' }}
+                direction={{ base: 'column', sm: 'row' }}
+              >
                 <TextInput
                   label={index === 0 ? 'Description' : undefined}
                   placeholder={`Milestone ${index + 1} — e.g. UI Design`}
@@ -315,7 +321,7 @@ export function CreateEscrow() {
                   placeholder="0.5"
                   decimalScale={MAX_AMOUNT_DECIMALS}
                   min={0}
-                  w={150}
+                  w={{ base: '100%', sm: 150 }}
                   rightSection={<Text size="xs" c="dimmed">ETH</Text>}
                   rightSectionWidth={40}
                   {...form.getInputProps(`milestones.${index}.amountEth`)}
@@ -323,14 +329,15 @@ export function CreateEscrow() {
                 <ActionIcon
                   variant="subtle"
                   color="red"
-                  mt={index === 0 ? 26 : 0}
+                  mt={{ base: 0, sm: index === 0 ? 26 : 0 }}
+                  ml={{ base: 'auto', sm: 0 }}
                   disabled={form.values.milestones.length <= 1}
                   onClick={() => removeMilestone(index)}
                   aria-label={`Remove milestone ${index + 1}`}
                 >
                   <IconTrash size={16} stroke={1.5} />
                 </ActionIcon>
-              </Group>
+              </Flex>
             ))}
 
             <Button
@@ -357,7 +364,7 @@ export function CreateEscrow() {
           </Stack>
         </Stepper.Step>
 
-        <Stepper.Step label="Review" description="Confirm & create">
+        <Stepper.Step label="Review" description={<Text span visibleFrom="sm">Confirm & create</Text>}>
           <Stack gap="md" mt="lg" maw={640}>
             <Card withBorder padding="lg">
               <Stack gap="sm">

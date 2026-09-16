@@ -221,10 +221,36 @@ function DashboardContent({ address }) {
         <SegmentedControl
           value={role}
           onChange={setRole}
+          w={{ base: '100%', sm: 'auto' }}
+          size="sm"
           data={[
-            { value: 'client', label: `As Client · ${clientEscrows.length}` },
-            { value: 'freelancer', label: `As Freelancer · ${freelancerEscrows.length}` },
-            { value: 'arbitrator', label: `As Arbitrator · ${arbitratorEscrows.length}` },
+            {
+              value: 'client',
+              label: (
+                <>
+                  <Text span hiddenFrom="xs">Client · {clientEscrows.length}</Text>
+                  <Text span visibleFrom="xs">As Client · {clientEscrows.length}</Text>
+                </>
+              ),
+            },
+            {
+              value: 'freelancer',
+              label: (
+                <>
+                  <Text span hiddenFrom="xs">Freelancer · {freelancerEscrows.length}</Text>
+                  <Text span visibleFrom="xs">As Freelancer · {freelancerEscrows.length}</Text>
+                </>
+              ),
+            },
+            {
+              value: 'arbitrator',
+              label: (
+                <>
+                  <Text span hiddenFrom="xs">Arbitrator · {arbitratorEscrows.length}</Text>
+                  <Text span visibleFrom="xs">As Arbitrator · {arbitratorEscrows.length}</Text>
+                </>
+              ),
+            },
           ]}
         />
       </Group>

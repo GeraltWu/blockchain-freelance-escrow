@@ -42,3 +42,10 @@ body {
 .network-dot-offline {
   background-color: var(--mantine-color-gray-5);
 }
+
+/* Critical actions remain easy to tap and never compete for horizontal space on phones. */
+@media (max-width: 47.99em) {
+  .mobile-action-group > * {
+    flex: 1 1 100%;
+  }
+}

@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Anchor,
   Button,
+  Card,
   Center,
   Group,
   MultiSelect,
@@ -53,6 +54,80 @@ const ACTION_META = {
 }
 
 const PAGE_SIZE = 20
+
+function TransactionCard({ transaction, chainId }) {
+  const meta = ACTION_META[transaction.action] ?? {
+    label: transaction.action,
+    icon: IconFilePlus,
+  }
+  const ActionIconComp = meta.icon
+
+  return (
+    <Card withBorder padding="md" radius="md">
+      <Stack gap="sm">
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+            <ActionIconComp
+              size={18}
+              stroke={1.5}
+              style={{ color: 'var(--mantine-color-dimmed)', flexShrink: 0 }}
+            />
+            <Text size="sm" fw={600} truncate="end">{meta.label}</Text>
+          </Group>
+          <StatusBadge status={transaction.status} />
+        </Group>
+
+        <Group justify="space-between" align="flex-end" wrap="nowrap">
+          <Stack gap={2} style={{ minWidth: 0 }}>
+            <Text size="sm" truncate="end">
+              {transaction.escrow_title
+                ? `#${transaction.escrow_id} ${transaction.escrow_title}`
+                : 'No linked project'}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {dayjs(transaction.created_at).format('YYYY-MM-DD HH:mm')}
+            </Text>
+          </Stack>
+          <Mono size="sm" fw={600} style={{ flexShrink: 0 }}>
+            {transaction.amount_wei ? `${formatEth(transaction.amount_wei)} ETH` : '—'}
+          </Mono>
+        </Group>
+
+        <Group justify="space-between" wrap="wrap" gap="xs">
+          <AddressText address={transaction.from_address} size="xs" />
+          <Anchor
+            href={`${blockExplorerUrl(chainId)}/tx/${transaction.tx_hash}`}
+            target="_blank"
+            rel="noreferrer"
+            size="xs"
+          >
+            <Mono inherit c="blue">Tx {shortenAddress(transaction.tx_hash)}</Mono>
+          </Anchor>
+        </Group>
+
+        {(transaction.milestone_index != null || transaction.block_number != null) && (
+          <Group gap="lg" wrap="wrap">
+            {transaction.milestone_index != null && (
+              <Text size="xs" c="dimmed">
+                Milestone <Text span inherit c="var(--mantine-color-text)">M{transaction.milestone_index + 1}</Text>
+              </Text>
+            )}
+            {transaction.block_number != null && (
+              <Anchor
+                href={`${blockExplorerUrl(chainId)}/block/${transaction.block_number}`}
+                target="_blank"
+                rel="noreferrer"
+                size="xs"
+              >
+                Block {transaction.block_number}
+              </Anchor>
+            )}
+          </Group>
+        )}
+      </Stack>
+    </Card>
+  )
+}
 
 export function TransactionHistory() {
   const { address } = useWallet()
@@ -162,7 +237,7 @@ function HistoryContent({ address, initialEscrow }) {
           data={[{ value: '', label: 'All Projects' }, ...escrowOptions]}
           value={escrowFilter}
           onChange={changeEscrow}
-          w={240}
+          w={{ base: '100%', sm: 240 }}
           searchable
           clearable
         />
@@ -171,7 +246,7 @@ function HistoryContent({ address, initialEscrow }) {
           value={actionFilter}
           onChange={changeAction}
           placeholder="All Actions"
-          w={280}
+          w={{ base: '100%', sm: 280 }}
           clearable
         />
         <Select
@@ -183,13 +258,13 @@ function HistoryContent({ address, initialEscrow }) {
           ]}
           value={statusFilter}
           onChange={changeStatus}
-          w={160}
+          w={{ base: '100%', sm: 160 }}
         />
         <ActionIcon variant="default" size="lg" aria-label="Refresh" onClick={() => setReloadKey((k) => k + 1)}>
           <IconRefresh size={16} stroke={1.5} />
         </ActionIcon>
         {data && (
-          <Text size="sm" c="dimmed" ml="auto">
+          <Text size="sm" c="dimmed" ml={{ base: 0, sm: 'auto' }}>
             {data.total} transaction{data.total === 1 ? '' : 's'}
           </Text>
         )}
@@ -214,20 +289,21 @@ function HistoryContent({ address, initialEscrow }) {
         </Center>
       ) : (
         <>
-          <Table striped highlightOnHover verticalSpacing="xs">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th w={40} />
-                <Table.Th>Time</Table.Th>
-                <Table.Th>Project</Table.Th>
-                <Table.Th>Action</Table.Th>
-                <Table.Th ta="right">Amount</Table.Th>
-                <Table.Th>Status</Table.Th>
-                <Table.Th>Tx Hash</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {data.items.map((t) => {
+          <Table.ScrollContainer minWidth={820} visibleFrom="sm">
+            <Table striped highlightOnHover verticalSpacing="xs">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th w={40} />
+                  <Table.Th>Time</Table.Th>
+                  <Table.Th>Project</Table.Th>
+                  <Table.Th>Action</Table.Th>
+                  <Table.Th ta="right">Amount</Table.Th>
+                  <Table.Th>Status</Table.Th>
+                  <Table.Th>Tx Hash</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.items.map((t) => {
                 const meta = ACTION_META[t.action] ?? { label: t.action, icon: IconFilePlus }
                 const ActionIconComp = meta.icon
                 const isExpanded = expanded.has(t.tx_hash)
@@ -304,13 +380,30 @@ function HistoryContent({ address, initialEscrow }) {
                     </Table.Tr>
                   ),
                 ]
-              })}
-            </Table.Tbody>
-          </Table>
+                })}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+
+          <Stack gap="sm" hiddenFrom="sm">
+            {data.items.map((transaction) => (
+              <TransactionCard
+                key={transaction.tx_hash}
+                transaction={transaction}
+                chainId={chainId}
+              />
+            ))}
+          </Stack>
 
           {data.total > PAGE_SIZE && (
             <Group justify="center">
-              <Pagination value={page} onChange={setPage} total={Math.ceil(data.total / PAGE_SIZE)} />
+              <Pagination
+                value={page}
+                onChange={setPage}
+                total={Math.ceil(data.total / PAGE_SIZE)}
+                siblings={0}
+                boundaries={1}
+              />
             </Group>
           )}
         </>

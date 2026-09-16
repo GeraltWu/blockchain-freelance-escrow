@@ -47,15 +47,23 @@ export function WalletButton() {
 
   // 连接中:loading 状态
   if (status === 'connecting') {
-    return <Button loading>Connecting…</Button>
+    return (
+      <Button loading px={{ base: 'xs', xs: 'md' }}>
+        <Text span visibleFrom="xs">Connecting…</Text>
+      </Button>
+    )
   }
 
   // 未连接:纯色填充,醒目
   if (status !== 'connected' || !address) {
     return (
       <>
-        <Button leftSection={<IconWallet size={18} stroke={1.5} />} onClick={handleConnect}>
-          Connect Wallet
+        <Button
+          leftSection={<IconWallet size={18} stroke={1.5} />}
+          onClick={handleConnect}
+          px={{ base: 'xs', xs: 'md' }}
+        >
+          <Text span visibleFrom="xs">Connect Wallet</Text>
         </Button>
         <InstallWalletModal opened={installOpened} onClose={closeInstall} />
       </>
@@ -70,7 +78,7 @@ export function WalletButton() {
           <Group gap={6} wrap="nowrap">
             <Mono inherit>{shortenAddress(address)}</Mono>
             {balanceEth && (
-              <Mono inherit c="dimmed">
+              <Mono inherit c="dimmed" visibleFrom="sm">
                 {balanceEth} ETH
               </Mono>
             )}

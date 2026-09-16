@@ -27,8 +27,8 @@ function NetworkBadge() {
 
 export function HeaderBar({ opened, onToggle }) {
   return (
-    <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-      <Group gap="sm" wrap="nowrap">
+    <Group h="100%" px={{ base: 'xs', sm: 'md' }} justify="space-between" wrap="nowrap">
+      <Group gap={{ base: 'xs', sm: 'sm' }} wrap="nowrap">
         <Burger opened={opened} onClick={onToggle} hiddenFrom="sm" size="sm" />
         <ThemeIcon variant="gradient" gradient={{ from: 'blue', to: 'cyan' }} size={32} radius="md">
           <IconShieldLock size={18} stroke={1.5} />

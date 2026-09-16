@@ -16,7 +16,7 @@ export function EscrowCard({ escrow }) {
   return (
     <Card withBorder padding="lg" className="escrow-card" component={Link} to={`/escrow/${id}`}>
       <Stack gap="md">
-        <Group justify="space-between" wrap="nowrap" gap="sm">
+        <Group justify="space-between" wrap="wrap" gap="sm">
           <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
             <Title order={4} lineClamp={1}>
               {title}
