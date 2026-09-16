@@ -142,23 +142,69 @@ function DashboardContent({ address }) {
   const completedCount = myEscrows.filter((e) => e.status === 'COMPLETED').length
 
   const commonStats = [
-    { icon: IconBriefcase, label: 'Active Projects', value: String(active.length) },
-    { icon: IconCircleCheck, label: 'Completed Projects', value: String(completedCount) },
+    {
+      icon: IconBriefcase,
+      label: 'Active Projects',
+      value: String(active.length),
+      color: 'blue',
+    },
+    {
+      icon: IconCircleCheck,
+      label: 'Completed Projects',
+      value: String(completedCount),
+      color: 'teal',
+    },
   ]
   const roleStats =
     role === 'client'
       ? [
-          { icon: IconLock, label: 'Total Locked Funds', value: formatEth(lockedWei.toString()), unit: 'ETH' },
-          { icon: IconAlertCircle, label: 'Awaiting Your Approval', value: String(pendingCount) },
+          {
+            icon: IconLock,
+            label: 'Total Locked Funds',
+            value: formatEth(lockedWei.toString()),
+            unit: 'ETH',
+            color: 'green',
+          },
+          {
+            icon: IconAlertCircle,
+            label: 'Awaiting Approval',
+            value: String(pendingCount),
+            color: 'orange',
+            alert: true,
+          },
         ]
       : role === 'freelancer'
         ? [
-            { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
-            { icon: IconAlertCircle, label: 'Ready to Submit', value: String(pendingCount) },
+            {
+              icon: IconLock,
+              label: 'Funds in Escrow',
+              value: formatEth(lockedWei.toString()),
+              unit: 'ETH',
+              color: 'green',
+            },
+            {
+              icon: IconAlertCircle,
+              label: 'Ready to Submit',
+              value: String(pendingCount),
+              color: 'orange',
+              alert: true,
+            },
           ]
         : [
-            { icon: IconGavel, label: 'Disputes Awaiting Decision', value: String(pendingCount) },
-            { icon: IconLock, label: 'Funds in Escrow', value: formatEth(lockedWei.toString()), unit: 'ETH' },
+            {
+              icon: IconGavel,
+              label: 'Open Disputes',
+              value: String(pendingCount),
+              color: 'orange',
+              alert: true,
+            },
+            {
+              icon: IconLock,
+              label: 'Funds in Escrow',
+              value: formatEth(lockedWei.toString()),
+              unit: 'ETH',
+              color: 'green',
+            },
           ]
   const stats = [commonStats[0], ...roleStats, commonStats[1]]
 

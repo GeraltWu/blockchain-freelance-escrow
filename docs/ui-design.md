@@ -61,18 +61,19 @@
 
 **结构从上到下：**
 
-1. **顶部统计卡片区**（一行 3-4 个 `Card`，横向排列，移动端自动堆叠）
-   - Active Projects（进行中项目数）
-   - Total Locked Funds（我作为 Client 锁在合约里的总金额）
-   - Pending Actions（需要我处理的事项数，比如有 milestone 待我 approve）
-   - Completed Projects（已完成项目数）
+1. **顶部统计卡片区**（一行 4 个 `Card`，横向排列，移动端自动堆叠；内容随角色 Tab 切换）
+   - 卡片结构：图标在左（纵向居中），右侧大写加粗标签在上 → 大数字（金额带 ETH 单位）
+   - 图标按语义配色：资金类绿色、待办类橙色、进行中蓝色、已完成 teal；待办类卡片在数量 > 0 时描边变橙、数字变橙提醒
+   - Client 视角：Active Projects / Total Locked Funds / Awaiting Approval / Completed Projects
+   - Freelancer 视角：Active Projects / Funds in Escrow / Ready to Submit / Completed Projects
+   - Arbitrator 视角：Active Projects / Open Disputes / Funds in Escrow / Completed Projects
 
-2. **角色切换 Tab**（Mantine `SegmentedControl` 或 `Tabs`）：`As Client` / `As Freelancer`，因为同一个钱包地址既可能是某些项目的客户，也可能是另一些项目的自由职业者，两种视角下"需要我做的事"不一样（Client 要 approve，Freelancer 要 submit）
+2. **角色切换 Tab**（Mantine `SegmentedControl` 或 `Tabs`）：`As Client` / `As Freelancer` / `As Arbitrator`，因为同一个钱包地址既可能是某些项目的客户，也可能是另一些项目的自由职业者，还可能被指定为某些项目的仲裁者，三种视角下"需要我做的事"不一样（Client 要 approve，Freelancer 要 submit，Arbitrator 要裁决争议）
 
 3. **项目列表**（卡片列表，每张 `Card` 代表一个 Escrow）
    每张卡片包含：
    - 项目标题
-   - 对方地址（缩写显示，旁边一个复制图标）
+   - 对方地址（缩写显示，点击跳转区块浏览器，旁边一个复制图标）
    - 状态 Badge（用上面的状态色规范）
    - 进度条（Mantine `Progress`）：已释放金额 / 总金额，直观展示项目完成度
    - 右下角一个"待处理"小红点标记（如果这个项目有需要我立即处理的 milestone）
@@ -167,7 +168,7 @@
 - **所有链上写操作**（create/fund/submit/approve/dispute/refund）统一走同一套反馈模式：按钮 loading → Mantine `notifications` 三段式提示（等待签名 → 等待上链确认 → 成功/失败）→ 成功后自动刷新当前页面数据（重新调用 `getEscrow`/`getMilestones` 或刷新 API 列表），**不需要用户手动刷新页面**
 - **未连接钱包时**：任何需要签名的按钮改为 disabled，`Tooltip` 提示"请先连接钱包"，而不是让用户点击后才报错
 - **网络不对时**（比如用户钱包连的不是合约部署的目标网络）：不做全局常驻检测，交易发起后如果因为网络不对失败，直接在那次操作的 `notifications` 失败提示里说明原因（"交易失败：请确认钱包连接的是 Sepolia 测试网"），按被动兜底处理，不用额外做一套主动监控 + 横幅 + 一键切换的机制
-- **地址展示统一规则**：全站所有地址都显示为 `0x1234...5678` 缩写格式 + 一个复制图标，点击复制整地址到剪贴板，Mantine `notifications` 弹出"已复制"小提示
+- **地址展示统一规则**：全站所有地址都显示为 `0x1234...5678` 缩写格式 + 一个复制图标；点击地址文字在新标签页打开对应网络的区块浏览器（Sepolia → sepolia.etherscan.io），复制图标点击复制完整地址，Mantine `notifications` 弹出"已复制"小提示
 
 ---
 

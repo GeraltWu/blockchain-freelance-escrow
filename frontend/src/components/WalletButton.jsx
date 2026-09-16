@@ -2,18 +2,13 @@ import { Button, Group, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconDownload, IconExternalLink, IconLogout, IconWallet } from '@tabler/icons-react'
 import { useWallet } from '../hooks/useWallet.js'
-import { hasWallet } from '../web3/wallet.js'
+import { blockExplorerUrl, hasWallet } from '../web3/wallet.js'
 import { shortenAddress } from '../utils/format.js'
 import { Mono } from './Mono.jsx'
 
 // 全站最重要的常驻组件:未连接 / 连接中 / 已连接 三种状态
 // (见 docs/ui-design.md「二、整体布局结构 - Header」)
 // 连接逻辑见 context/WalletContext.jsx,真实 MetaMask 授权流程
-
-// 按当前所在网络跳对应的区块浏览器
-function explorerUrl(chainId) {
-  return chainId === 11155111 ? 'https://sepolia.etherscan.io' : 'https://etherscan.io'
-}
 
 function InstallWalletModal({ opened, onClose }) {
   return (
@@ -91,7 +86,7 @@ export function WalletButton() {
         </Menu.Label>
         <Menu.Item
           component="a"
-          href={`${explorerUrl(chainId)}/address/${address}`}
+          href={`${blockExplorerUrl(chainId)}/address/${address}`}
           target="_blank"
           rel="noreferrer"
           leftSection={<IconExternalLink size={14} stroke={1.5} />}

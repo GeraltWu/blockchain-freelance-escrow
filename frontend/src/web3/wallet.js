@@ -18,6 +18,12 @@ export function chainName(chainId) {
   return CHAIN_NAMES[chainId] ?? `Chain ${chainId}`
 }
 
+// 区块浏览器地址:按链选择(地址/交易/区块链接共用);chainId 为空时按目标网络 Sepolia
+export function blockExplorerUrl(chainId) {
+  const id = chainId ?? TARGET_CHAIN_ID
+  return id === 11155111 ? 'https://sepolia.etherscan.io' : 'https://etherscan.io'
+}
+
 // 检测是否装了 EIP-1193 兼容钱包插件(MetaMask 或同类)
 export function hasWallet() {
   return typeof window !== 'undefined' && Boolean(window.ethereum)

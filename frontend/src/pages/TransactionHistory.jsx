@@ -34,11 +34,12 @@ import { ConnectPrompt } from '../components/ConnectPrompt.jsx'
 import { Mono } from '../components/Mono.jsx'
 import { StatusBadge } from '../components/StatusBadge.jsx'
 import { useWallet } from '../hooks/useWallet.js'
+import { blockExplorerUrl } from '../web3/wallet.js'
 import { formatEth, shortenAddress } from '../utils/format.js'
 
 // Page 4:Transaction History(见 docs/ui-design.md 六)
 // 审计视角:时间倒序的交易列表 + 筛选栏 + 可展开详情行 + 分页
-// Tx Hash 直接跳 Sepolia 区块浏览器
+// Tx Hash / Block 按当前网络跳对应区块浏览器
 
 // action → 图标 + 文案(放款 ↗ / 退款 ↙,见 ui-design.md 六.2)
 const ACTION_META = {
@@ -76,6 +77,7 @@ export function TransactionHistory() {
 }
 
 function HistoryContent({ address, initialEscrow }) {
+  const { chainId } = useWallet()
   const [escrowFilter, setEscrowFilter] = useState(initialEscrow ?? '') // '' = All Projects
   const [actionFilter, setActionFilter] = useState([]) // 空数组 = All Actions
   const [statusFilter, setStatusFilter] = useState('') // '' = All Statuses
@@ -262,7 +264,7 @@ function HistoryContent({ address, initialEscrow }) {
                     </Table.Td>
                     <Table.Td><StatusBadge status={t.status} /></Table.Td>
                     <Table.Td>
-                      <Anchor href={`https://sepolia.etherscan.io/tx/${t.tx_hash}`} target="_blank" rel="noreferrer" size="sm">
+                      <Anchor href={`${blockExplorerUrl(chainId)}/tx/${t.tx_hash}`} target="_blank" rel="noreferrer" size="sm">
                         <Mono inherit c="blue">{shortenAddress(t.tx_hash)}</Mono>
                       </Anchor>
                     </Table.Td>
@@ -286,7 +288,7 @@ function HistoryContent({ address, initialEscrow }) {
                           <div>
                             <Text size="xs" c="dimmed">Block</Text>
                             {t.block_number != null ? (
-                              <Anchor href={`https://sepolia.etherscan.io/block/${t.block_number}`} target="_blank" rel="noreferrer" size="sm">
+                              <Anchor href={`${blockExplorerUrl(chainId)}/block/${t.block_number}`} target="_blank" rel="noreferrer" size="sm">
                                 <Mono inherit c="blue">{t.block_number}</Mono>
                               </Anchor>
                             ) : (
