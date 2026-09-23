@@ -7,6 +7,7 @@ import {
   Flex,
   Group,
   NumberInput,
+  Progress,
   Stack,
   Stepper,
   Text,
@@ -39,9 +40,24 @@ import { createEscrowOnChain } from '../web3/contract.js'
 
 const MAX_AMOUNT_DECIMALS = 6
 const AMOUNT_RE = /^\d+(\.\d{1,6})?$/
+const STEP_LABELS = ['Basic Info', 'Milestones', 'Review']
 
 function isPositiveAmount(value) {
   return typeof value === 'string' && AMOUNT_RE.test(value) && Number(value) > 0
+}
+
+function ReviewField({ label, children }) {
+  return (
+    <Flex
+      justify="space-between"
+      direction={{ base: 'column', sm: 'row' }}
+      align={{ base: 'flex-start', sm: 'center' }}
+      gap={{ base: 4, sm: 'md' }}
+    >
+      <Text size="sm" c="dimmed">{label}</Text>
+      <div>{children}</div>
+    </Flex>
+  )
 }
 
 export function CreateEscrow() {
@@ -263,7 +279,23 @@ export function CreateEscrow() {
         </Text>
       </div>
 
-      <Stepper active={active} onStepClick={setActive} allowNextStepsSelect={false} size="sm">
+      {active < STEP_LABELS.length && (
+        <Stack gap={6} hiddenFrom="sm">
+          <Group justify="space-between">
+            <Text size="xs" c="dimmed">Step {active + 1} of {STEP_LABELS.length}</Text>
+            <Text size="sm" fw={600}>{STEP_LABELS[active]}</Text>
+          </Group>
+          <Progress value={((active + 1) / STEP_LABELS.length) * 100} size="sm" />
+        </Stack>
+      )}
+
+      <Stepper
+        active={active}
+        onStepClick={setActive}
+        allowNextStepsSelect={false}
+        size="sm"
+        classNames={{ stepLabel: 'mobile-step-label', stepDescription: 'mobile-step-description' }}
+      >
         <Stepper.Step label="Basic Info" description={<Text span visibleFrom="sm">Project details</Text>}>
           <Stack gap="md" mt="lg" maw={560}>
             <TextInput
@@ -329,6 +361,7 @@ export function CreateEscrow() {
                 <ActionIcon
                   variant="subtle"
                   color="red"
+                  className="mobile-touch-target"
                   mt={{ base: 0, sm: index === 0 ? 26 : 0 }}
                   ml={{ base: 'auto', sm: 0 }}
                   disabled={form.values.milestones.length <= 1}
@@ -366,31 +399,26 @@ export function CreateEscrow() {
 
         <Stepper.Step label="Review" description={<Text span visibleFrom="sm">Confirm & create</Text>}>
           <Stack gap="md" mt="lg" maw={640}>
-            <Card withBorder padding="lg">
-              <Stack gap="sm">
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Title</Text>
+            <Card withBorder p={{ base: 'md', sm: 'lg' }}>
+              <Stack gap={{ base: 'xs', sm: 'sm' }}>
+                <ReviewField label="Title">
                   <Text size="sm" fw={600}>{form.values.title.trim()}</Text>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Freelancer</Text>
+                </ReviewField>
+                <ReviewField label="Freelancer">
                   <AddressText address={form.values.freelancerAddress} />
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Arbitrator</Text>
+                </ReviewField>
+                <ReviewField label="Arbitrator">
                   <AddressText address={form.values.arbitratorAddress} />
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Deadline</Text>
+                </ReviewField>
+                <ReviewField label="Deadline">
                   <Text size="sm">{dayjs(form.values.deadline).format('YYYY-MM-DD')}</Text>
-                </Group>
+                </ReviewField>
                 {form.values.description.trim() && (
-                  <Group justify="space-between" align="flex-start">
-                    <Text size="sm" c="dimmed">Description</Text>
-                    <Text size="sm" maw={380} style={{ textAlign: 'right' }}>
+                  <ReviewField label="Description">
+                    <Text size="sm" maw={380} ta={{ base: 'left', sm: 'right' }}>
                       {form.values.description.trim()}
                     </Text>
-                  </Group>
+                  </ReviewField>
                 )}
                 <Divider my="xs" />
                 {form.values.milestones.map((m, i) => (

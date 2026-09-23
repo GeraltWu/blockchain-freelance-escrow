@@ -64,7 +64,7 @@ function TransactionCard({ transaction, chainId }) {
 
   return (
     <Card withBorder padding="md" radius="md">
-      <Stack gap="sm">
+      <Stack gap="xs">
         <Group justify="space-between" align="flex-start" wrap="nowrap">
           <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
             <ActionIconComp
@@ -260,7 +260,13 @@ function HistoryContent({ address, initialEscrow }) {
           onChange={changeStatus}
           w={{ base: '100%', sm: 160 }}
         />
-        <ActionIcon variant="default" size="lg" aria-label="Refresh" onClick={() => setReloadKey((k) => k + 1)}>
+        <ActionIcon
+          variant="default"
+          size="lg"
+          className="mobile-touch-target"
+          aria-label="Refresh"
+          onClick={() => setReloadKey((k) => k + 1)}
+        >
           <IconRefresh size={16} stroke={1.5} />
         </ActionIcon>
         {data && (
@@ -385,7 +391,7 @@ function HistoryContent({ address, initialEscrow }) {
             </Table>
           </Table.ScrollContainer>
 
-          <Stack gap="sm" hiddenFrom="sm">
+          <Stack gap="xs" hiddenFrom="sm">
             {data.items.map((transaction) => (
               <TransactionCard
                 key={transaction.tx_hash}

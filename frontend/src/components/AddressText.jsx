@@ -21,7 +21,7 @@ export function AddressText({ address, size = 'sm' }) {
   }
 
   return (
-    <Group gap={4} wrap="nowrap">
+    <Group gap={2} wrap="nowrap" className="address-text">
       <Anchor
         href={`${blockExplorerUrl(chainId)}/address/${address}`}
         target="_blank"
@@ -38,7 +38,7 @@ export function AddressText({ address, size = 'sm' }) {
       <ActionIcon
         variant="subtle"
         color="gray"
-        size="xs"
+        size="sm"
         onClick={copy}
         aria-label="Copy full address"
       >

@@ -423,8 +423,8 @@ export function EscrowDetail() {
       </Group>
 
       {/* 金额概览(ui-design.md 五.2):已释放/锁定分段进度条 */}
-      <Card withBorder padding="lg">
-        <Stack gap="sm">
+      <Card withBorder p={{ base: 'md', sm: 'lg' }}>
+        <Stack gap={{ base: 'xs', sm: 'sm' }}>
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={4}>
             <Text size="sm" c="dimmed" ta={{ base: 'left', sm: 'left' }}>
               Total <Mono inherit>{formatEth(escrow.total_amount_wei)} ETH</Mono>
@@ -464,44 +464,70 @@ export function EscrowDetail() {
         </Alert>
       )}
 
-      {/* Milestone Timeline(ui-design.md 五.3) */}
-      <Timeline active={escrow.milestones.filter((m) => m.status === 'RELEASED').length} bulletSize={26} lineWidth={2}>
-        {escrow.milestones.map((m) => (
-          <Timeline.Item
-            key={m.milestone_index}
-            color={STATUS_COLORS[m.status]}
-            title={
-              <Flex
-                justify="space-between"
-                direction={{ base: 'column', sm: 'row' }}
-                align={{ base: 'flex-start', sm: 'center' }}
-                gap={{ base: 6, sm: 'sm' }}
-              >
-                <Text fw={600} size="sm" style={{ overflowWrap: 'anywhere' }}>
-                  M{m.milestone_index + 1} · {m.description}
-                </Text>
-                <Group gap="sm" wrap="nowrap">
-                  <Mono size="sm" c="dimmed">{formatEth(m.amount_wei)} ETH</Mono>
-                  <StatusBadge status={m.status} />
-                </Group>
-              </Flex>
-            }
-          >
-            <Flex
-              justify="space-between"
-              direction={{ base: 'column', sm: 'row' }}
-              align={{ base: 'flex-start', sm: 'center' }}
-              gap="xs"
-              mt="xs"
+      {/* 桌面端使用时间线，手机端改为更适合触控和纵向阅读的卡片。 */}
+      <Stack gap="sm">
+        <Group justify="space-between">
+          <Title order={3}>Milestones</Title>
+          <Text size="sm" c="dimmed">{escrow.milestones.length} total</Text>
+        </Group>
+
+        <Timeline
+          visibleFrom="sm"
+          active={escrow.milestones.filter((m) => m.status === 'RELEASED').length}
+          bulletSize={26}
+          lineWidth={2}
+        >
+          {escrow.milestones.map((m) => (
+            <Timeline.Item
+              key={m.milestone_index}
+              color={STATUS_COLORS[m.status]}
+              title={
+                <Flex justify="space-between" align="center" gap="sm">
+                  <Text fw={600} size="sm" style={{ overflowWrap: 'anywhere' }}>
+                    M{m.milestone_index + 1} · {m.description}
+                  </Text>
+                  <Group gap="sm" wrap="nowrap">
+                    <Mono size="sm" c="dimmed">{formatEth(m.amount_wei)} ETH</Mono>
+                    <StatusBadge status={m.status} />
+                  </Group>
+                </Flex>
+              }
             >
-              <Text size="xs" c="dimmed">
-                {m.submitted_at ? `Submitted ${dayjs(m.submitted_at).format('YYYY-MM-DD HH:mm')}` : 'Not submitted yet'}
-              </Text>
-              {milestoneActions(m)}
-            </Flex>
-          </Timeline.Item>
-        ))}
-      </Timeline>
+              <Flex justify="space-between" align="center" gap="xs" mt="xs">
+                <Text size="xs" c="dimmed">
+                  {m.submitted_at ? `Submitted ${dayjs(m.submitted_at).format('YYYY-MM-DD HH:mm')}` : 'Not submitted yet'}
+                </Text>
+                {milestoneActions(m)}
+              </Flex>
+            </Timeline.Item>
+          ))}
+        </Timeline>
+
+        <Stack gap="xs" hiddenFrom="sm">
+          {escrow.milestones.map((m) => {
+            const actions = milestoneActions(m)
+            return (
+              <Card key={m.milestone_index} withBorder p="md" radius="md">
+                <Stack gap="xs">
+                  <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <Text fw={600} size="sm" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
+                      M{m.milestone_index + 1} · {m.description}
+                    </Text>
+                    <StatusBadge status={m.status} />
+                  </Group>
+                  <Group justify="space-between" wrap="wrap" gap="xs">
+                    <Mono size="sm" fw={600}>{formatEth(m.amount_wei)} ETH</Mono>
+                    <Text size="xs" c="dimmed">
+                      {m.submitted_at ? `Submitted ${dayjs(m.submitted_at).format('YYYY-MM-DD HH:mm')}` : 'Not submitted yet'}
+                    </Text>
+                  </Group>
+                  {actions && <Group className="mobile-action-group">{actions}</Group>}
+                </Stack>
+              </Card>
+            )
+          })}
+        </Stack>
+      </Stack>
 
       {/* 相关交易记录:跳转 History 页并自动带上 escrow 过滤条件(ui-design.md 五.4) */}
       <Card withBorder padding="md">

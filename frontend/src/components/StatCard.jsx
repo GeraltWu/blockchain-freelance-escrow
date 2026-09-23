@@ -9,11 +9,11 @@ export function StatCard({ icon: Icon, label, value, unit, color = 'blue', alert
   return (
     <Card
       withBorder
-      padding="lg"
+      p={{ base: 'sm', sm: 'lg' }}
       style={hasAlert ? { borderColor: 'var(--mantine-color-orange-4)' } : undefined}
     >
-      <Group gap="md" wrap="nowrap" align="center">
-        <ThemeIcon variant="light" color={color} size={40} radius="md">
+      <Group gap={{ base: 'xs', sm: 'md' }} wrap="nowrap" align="center">
+        <ThemeIcon variant="light" color={color} size={36} radius="md">
           <Icon size={22} stroke={1.5} />
         </ThemeIcon>
         <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>

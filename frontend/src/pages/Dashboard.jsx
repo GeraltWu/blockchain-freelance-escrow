@@ -3,6 +3,7 @@ import {
   Button,
   Center,
   Group,
+  Select,
   SegmentedControl,
   SimpleGrid,
   Skeleton,
@@ -80,7 +81,7 @@ function EmptyState({ role }) {
 function DashboardSkeleton() {
   return (
     <Stack gap="lg">
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
+      <SimpleGrid cols={{ base: 2, sm: 2, lg: 4 }}>
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} height={96} />
         ))}
@@ -207,6 +208,11 @@ function DashboardContent({ address }) {
             },
           ]
   const stats = [commonStats[0], ...roleStats, commonStats[1]]
+  const roleOptions = [
+    { value: 'client', label: `Client · ${clientEscrows.length}` },
+    { value: 'freelancer', label: `Freelancer · ${freelancerEscrows.length}` },
+    { value: 'arbitrator', label: `Arbitrator · ${arbitratorEscrows.length}` },
+  ]
 
   return (
     <Stack gap="lg">
@@ -221,37 +227,18 @@ function DashboardContent({ address }) {
         <SegmentedControl
           value={role}
           onChange={setRole}
-          w={{ base: '100%', sm: 'auto' }}
+          visibleFrom="sm"
           size="sm"
-          data={[
-            {
-              value: 'client',
-              label: (
-                <>
-                  <Text span hiddenFrom="xs">Client · {clientEscrows.length}</Text>
-                  <Text span visibleFrom="xs">As Client · {clientEscrows.length}</Text>
-                </>
-              ),
-            },
-            {
-              value: 'freelancer',
-              label: (
-                <>
-                  <Text span hiddenFrom="xs">Freelancer · {freelancerEscrows.length}</Text>
-                  <Text span visibleFrom="xs">As Freelancer · {freelancerEscrows.length}</Text>
-                </>
-              ),
-            },
-            {
-              value: 'arbitrator',
-              label: (
-                <>
-                  <Text span hiddenFrom="xs">Arbitrator · {arbitratorEscrows.length}</Text>
-                  <Text span visibleFrom="xs">As Arbitrator · {arbitratorEscrows.length}</Text>
-                </>
-              ),
-            },
-          ]}
+          data={roleOptions.map((option) => ({ ...option, label: `As ${option.label}` }))}
+        />
+        <Select
+          label="View projects as"
+          value={role}
+          onChange={(value) => value && setRole(value)}
+          data={roleOptions}
+          hiddenFrom="sm"
+          w="100%"
+          allowDeselect={false}
         />
       </Group>
 
@@ -281,7 +268,7 @@ function DashboardContent({ address }) {
 
       {!error && (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
+          <SimpleGrid cols={{ base: 2, sm: 2, lg: 4 }}>
             {stats.map((s) => (
               <StatCard key={s.label} {...s} />
             ))}

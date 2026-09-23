@@ -10,6 +10,7 @@ export function ColorSchemeToggle() {
     <ActionIcon
       variant="default"
       size="lg"
+      className="mobile-touch-target"
       aria-label="Toggle color scheme"
       onClick={() => setColorScheme(computed === 'dark' ? 'light' : 'dark')}
     >

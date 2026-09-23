@@ -1,4 +1,4 @@
-import { Badge, Burger, Group, Text, ThemeIcon } from '@mantine/core'
+import { Badge, Group, Text, ThemeIcon } from '@mantine/core'
 import { IconShieldLock } from '@tabler/icons-react'
 import { ColorSchemeToggle } from '../ColorSchemeToggle.jsx'
 import { WalletButton } from '../WalletButton.jsx'
@@ -25,11 +25,10 @@ function NetworkBadge() {
   )
 }
 
-export function HeaderBar({ opened, onToggle }) {
+export function HeaderBar() {
   return (
     <Group h="100%" px={{ base: 'xs', sm: 'md' }} justify="space-between" wrap="nowrap">
       <Group gap={{ base: 'xs', sm: 'sm' }} wrap="nowrap">
-        <Burger opened={opened} onClick={onToggle} hiddenFrom="sm" size="sm" />
         <ThemeIcon variant="gradient" gradient={{ from: 'blue', to: 'cyan' }} size={32} radius="md">
           <IconShieldLock size={18} stroke={1.5} />
         </ThemeIcon>

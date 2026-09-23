@@ -1,5 +1,5 @@
 import { Card, Group, Progress, Stack, Text, Title } from '@mantine/core'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AddressText } from './AddressText.jsx'
 import { Mono } from './Mono.jsx'
 import { StatusBadge } from './StatusBadge.jsx'
@@ -8,21 +8,34 @@ import { formatEth, getReleasedWei } from '../utils/format.js'
 // Dashboard 项目列表卡片(见 docs/ui-design.md「三、Page 1:Dashboard - 3」):
 // 标题 / 对方地址(仲裁者视角为双方) / 状态 Badge / 释放进度条 / 待处理小红点,点击整卡跳转详情页
 export function EscrowCard({ escrow }) {
+  const navigate = useNavigate()
   const { escrow_id: id, title, parties, totalWei, status, milestones, pendingLabel } = escrow
   const releasedWei = getReleasedWei(milestones)
   const pct =
     totalWei === '0' ? 0 : Number((BigInt(releasedWei) * 10000n) / BigInt(totalWei)) / 100
 
   return (
-    <Card withBorder padding="lg" className="escrow-card" component={Link} to={`/escrow/${id}`}>
-      <Stack gap="md">
+    <Card
+      withBorder
+      p={{ base: 'md', sm: 'lg' }}
+      className="escrow-card"
+      onClick={() => navigate(`/escrow/${id}`)}
+    >
+      <Stack gap={{ base: 'xs', sm: 'md' }}>
         <Group justify="space-between" wrap="wrap" gap="sm">
-          <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-            <Title order={4} lineClamp={1}>
+          <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+            <Title
+              order={4}
+              lineClamp={1}
+              component={Link}
+              to={`/escrow/${id}`}
+              className="escrow-title-link"
+              onClick={(event) => event.stopPropagation()}
+            >
               {title}
             </Title>
             {parties.map((p) => (
-              <Group key={p.label} gap={6} wrap="nowrap">
+              <Group key={p.label} gap={4} wrap="nowrap">
                 <Text size="xs" c="dimmed" w={72}>
                   {p.label}
                 </Text>
@@ -33,7 +46,7 @@ export function EscrowCard({ escrow }) {
           <StatusBadge status={status} />
         </Group>
 
-        <Stack gap={6}>
+        <Stack gap={4}>
           <Group justify="space-between">
             <Text size="xs" c="dimmed">
               Released <Mono inherit size="xs">{formatEth(releasedWei)} ETH</Mono>
