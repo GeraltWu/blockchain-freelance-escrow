@@ -65,15 +65,15 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
-  height: calc(64px + env(safe-area-inset-bottom));
+  height: calc(48px + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid var(--mantine-color-default-border);
-  background: color-mix(in srgb, var(--mantine-color-body) 94%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--mantine-color-body);
+  box-shadow: 0 -2px 10px rgb(0 0 0 / 6%);
 }
 
 .bottom-nav-link {
-  height: 64px;
+  height: 48px;
   color: var(--mantine-color-dimmed);
 }
 

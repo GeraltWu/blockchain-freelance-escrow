@@ -48,7 +48,7 @@ export function WalletButton() {
   // 连接中:loading 状态
   if (status === 'connecting') {
     return (
-      <Button loading px={{ base: 'xs', xs: 'md' }} className="mobile-touch-target">
+      <Button loading size="sm" px={{ base: 'xs', xs: 'md' }}>
         <Text span visibleFrom="xs">Connecting…</Text>
       </Button>
     )
@@ -59,10 +59,10 @@ export function WalletButton() {
     return (
       <>
         <Button
-          leftSection={<IconWallet size={18} stroke={1.5} />}
+          leftSection={<IconWallet size={16} stroke={1.5} />}
           onClick={handleConnect}
+          size="sm"
           px={{ base: 'xs', xs: 'md' }}
-          className="mobile-touch-target"
         >
           <Text span visibleFrom="xs">Connect Wallet</Text>
         </Button>
@@ -77,8 +77,8 @@ export function WalletButton() {
       <Menu.Target>
         <Button
           variant="light"
-          leftSection={<IconWallet size={18} stroke={1.5} />}
-          className="mobile-touch-target"
+          leftSection={<IconWallet size={16} stroke={1.5} />}
+          size="sm"
         >
           <Group gap={6} wrap="nowrap">
             <Mono inherit>{shortenAddress(address)}</Mono>

@@ -9,7 +9,7 @@ import { SideNav } from './SideNav.jsx'
 export function AppLayout() {
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: { base: 46, sm: 60 } }}
       navbar={{ width: 240, breakpoint: 'sm', collapsed: { mobile: true } }}
       padding={{ base: 'xs', sm: 'md' }}
     >
@@ -20,7 +20,11 @@ export function AppLayout() {
         <SideNav />
       </AppShell.Navbar>
       <AppShell.Main>
-        <Container size="lg" pt="sm" pb={{ base: 88, sm: 'xl' }}>
+        <Container
+          size="lg"
+          pt={{ base: 'xs', sm: 'sm' }}
+          pb={{ base: 'calc(64px + env(safe-area-inset-bottom))', sm: 'xl' }}
+        >
           <Outlet />
         </Container>
       </AppShell.Main>

@@ -21,9 +21,9 @@ export function BottomNav() {
               data-active={active || undefined}
               aria-current={active ? 'page' : undefined}
             >
-              <Stack align="center" justify="center" gap={2} h="100%">
-                <Icon size={21} stroke={active ? 2 : 1.5} />
-                <Text size="xs" fw={active ? 600 : 500} inherit>
+              <Stack align="center" justify="center" gap={1} h="100%">
+                <Icon size={24} stroke={active ? 2 : 1.5} />
+                <Text fz={12} lh={1.1} fw={active ? 600 : 500}>
                   {label === 'Create Escrow' ? 'Create' : label === 'Transaction History' ? 'History' : label}
                 </Text>
               </Stack>
