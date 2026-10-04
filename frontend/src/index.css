@@ -81,8 +81,17 @@ body {
   color: var(--mantine-primary-color-filled);
 }
 
+.stat-card-label {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 /* Critical actions remain easy to tap and never compete for horizontal space on phones. */
 @media (max-width: 47.99em) {
+  .stat-card-label {
+    min-height: 2.4em;
+  }
+
   .mobile-step-label,
   .mobile-step-description {
     display: none;

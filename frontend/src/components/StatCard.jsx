@@ -17,7 +17,14 @@ export function StatCard({ icon: Icon, label, value, unit, color = 'blue', alert
           <Icon size={22} stroke={1.5} />
         </ThemeIcon>
         <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-          <Text size="xs" fw={600} tt="uppercase" c="dimmed" truncate="end" title={label}>
+          <Text
+            className="stat-card-label"
+            size="xs"
+            fw={600}
+            tt="uppercase"
+            c="dimmed"
+            title={label}
+          >
             {label}
           </Text>
           <Mono size="xl" fw={700} lh={1.2} c={hasAlert ? 'orange' : undefined}>

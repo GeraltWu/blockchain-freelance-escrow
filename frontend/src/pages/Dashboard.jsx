@@ -268,7 +268,7 @@ function DashboardContent({ address }) {
 
       {!error && (
         <>
-          <SimpleGrid cols={{ base: 2, sm: 2, lg: 4 }}>
+          <SimpleGrid cols={{ base: 2, sm: 2, lg: 4 }} spacing={{ base: 'xs', sm: 'md' }}>
             {stats.map((s) => (
               <StatCard key={s.label} {...s} />
             ))}
